@@ -1,0 +1,17 @@
+* {
+    text-align: center;
+    color: rgb(13, 13, 41);
+  }
+
+/* Styles via id selectors */
+#about {
+    background-color: rgba(173, 216, 230, 0.349);
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#sign-up {
+    background-color: lightblue;
+    padding: 10px;
+    border-radius: 5px;
+}
