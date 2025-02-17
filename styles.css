@@ -1,17 +1,81 @@
 * {
-    text-align: center;
-    color: rgb(13, 13, 41);
-  }
+  text-align: center;
+  color: rgb(13, 13, 41);
+}
 
 /* Styles via id selectors */
 #about {
-    background-color: rgba(173, 216, 230, 0.349);
-    padding: 10px;
-    border-radius: 5px;
+  background-color: rgba(38, 119, 15, 0.349);
+  padding: 10px;
+  border-radius: 5px;
 }
 
 #sign-up {
-    background-color: lightblue;
-    padding: 10px;
-    border-radius: 5px;
+  background-color: lightblue;
+  padding: 10px;
+  border-radius: 5px;
 }
+
+body {
+  margin: 0;
+}
+
+/* For Feature Cards */
+
+/* flex display for responsive design */
+#features {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 20px;
+  padding: 20px;
+  margin: 0;
+  background-color: rgba(173, 216, 230, 0.349);
+}
+
+.feature-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  padding-top: 0;
+  text-align: center;
+  transition: transform 0.3s ease;
+  /* 
+    grow: 1 - cards expand to fill space
+    shrink: 1 - cards shrink when screen shrinks
+    base: 300px - minimum width of 300px
+  */
+  flex: 1 1 300px;
+  max-width: 400px;
+  /* For text & image in card */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.feature-card img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+}
+
+/* make slightly bigger and move up */
+.feature-card:hover {
+  transform: translateY(-5px);
+  transform: scale(1.02);
+}
+
+.feature-card h2 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.feature-card p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* End of Feature Cards */
