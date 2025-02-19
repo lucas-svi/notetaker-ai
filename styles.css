@@ -116,3 +116,14 @@ nav ul li strong {
   color: white;
   font-size: 20px;
 }
+
+/* For iframe */
+.video-container iframe {
+  /* 80% viewport width, 45% height for 16:9 aspect ratio*/
+  width: 80vw;
+  height: 45vw;
+
+  /* max width and height */
+  max-width: 960px;
+  max-height: 540px;
+}
