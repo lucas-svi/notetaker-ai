@@ -7,13 +7,31 @@
 #about {
   background-color: rgba(38, 119, 15, 0.349);
   padding: 10px;
-  border-radius: 5px;
 }
 
-#sign-up {
+#footer {
   background-color: lightblue;
   padding: 10px;
-  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-info {
+  margin-right: auto;
+}
+
+.footer-info p {
+  text-align: left;
+}
+
+#footer ul {
+  list-style: none;
+  margin-left: auto;
+}
+
+#footer li {
+  text-align: right;
 }
 
 body {
