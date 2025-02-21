@@ -1,9 +1,9 @@
 # Notetaker AI
 
 ## 📌 Team Members
-- Lucas Svirsky
-- Matthew Rich
-- Ford Zamore
+- Lucas Svirsky (33%)
+- Matthew Rich (33%)
+- Ford Zamore (33%)
 
 ## 🚀 About
 Notetaker AI is a web app that helps users take notes using AI. It transcribes lectures, organizes notes, and creates flashcards.
