@@ -10,9 +10,10 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
 
 ## 📂 Files
 - **index.html** – Main webpage
+- **signup.html** – Signup webpage
 - **styles.css** – Styling
 - **/images/** – Contains images like the logo
-- **README.md** - This file
+- **README.md** – This file
 - **LICENSE** - The MIT License under which this project is licensed by
 
 ## 🛠️ How to Run
