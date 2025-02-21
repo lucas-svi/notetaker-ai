@@ -9,6 +9,10 @@
   padding: 10px;
 }
 
+.about-text {
+  display: flex;
+}
+
 #footer {
   background-color: lightblue;
   padding: 10px;
