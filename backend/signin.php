@@ -17,10 +17,10 @@ if (mysqli_num_rows($result) === 1) {
         header("Location: ../index.html");
         exit();
     } else {
-        echo "Invalid password.";
+        echo "<p>Invalid Password</p>";
     }
 } else {
-    echo "User not found.";
+    echo "<p>User not found</p>";
 }
 mysqli_close($conn);
 ?>

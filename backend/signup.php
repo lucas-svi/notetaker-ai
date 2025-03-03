@@ -10,7 +10,7 @@ $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 $sql = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$hashed_password')";
 
 if (mysqli_query($conn, $sql)) {
-    header("Location: ../signin.html");
+    header("Location: ../index.html?auth=signin");
     exit();
 } else {
     echo "<p>Error occurred</p>";
