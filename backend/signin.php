@@ -14,7 +14,7 @@ if (mysqli_num_rows($result) === 1) {
     if (password_verify($password, $user['password'])) {
         $_SESSION['username'] = $user['username'];
         $_SESSION['logged_in'] = true;
-        header("Location: ../index.html");
+        header("Location: dashboard.php");
         exit();
     } else {
         echo "<p>Invalid Password</p>";
