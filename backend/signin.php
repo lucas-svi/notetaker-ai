@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (password_verify($password, $user['password'])) {
             $_SESSION['username'] = $user['username'];
             $_SESSION['logged_in'] = true;
-            header("Location: dashboard.php");
+            echo "<script>window.top.location = '../backend/dashboard.php';</script>";
             exit();
         } else {
             $message = "<p style='color: red;'>Password is incorrect.</p>";
