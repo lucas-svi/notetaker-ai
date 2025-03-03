@@ -23,7 +23,7 @@
         <ul>
           <li><a href="#about">About</a></li>
           <li>
-            <a href="#sign-up" onclick="loadForm('signup.html')">Sign Up</a>
+            <a href="#sign-up" onclick="loadForm('backend/signup.php')">Sign Up</a>
           </li>
           <li>
             <a href="#sign-in" onclick="loadForm('signin.html')">Sign In</a>
@@ -117,7 +117,7 @@
       <section id="footer">
         <div class="footer-info">
           <p>
-            <a href="#sign-up" onclick="loadForm('signup.html')"
+            <a href="#sign-up" onclick="loadForm('backend/signup.php')"
               >Sign up here</a
             >
           </p>
@@ -160,13 +160,6 @@
         </div>
       </section>
     </main>
-
-    <script>
-      function loadForm(form) {
-        const frame = document.getElementById("auth-frame");
-        frame.src = form;
-      }
-    </script>
     <script>
       function loadForm(form) {
         const frame = document.getElementById("auth-frame");
@@ -179,7 +172,7 @@
       if (auth === "signin") {
         loadForm("signin.html");
       } else if (auth === "signup") {
-        loadForm("signup.html");
+        loadForm("backend/signup.php");
       }
     </script>
   </body>
