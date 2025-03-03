@@ -11,6 +11,9 @@ if (!isset($_SESSION['username'])) {
 
 // Now we can retrieve and output the username if alrdy in DB
 $username = $_SESSION['username'];
+
+require 'db.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,5 +23,11 @@ $username = $_SESSION['username'];
 </head>
 <body>
     <h1>Wassup, <?php echo $username; ?>!</h1>
+    <h2>Create new note</h2>
+    <form action="create_note.php" method="POST">
+        <textarea name="note" rows="10" cols="100" placeholder="Write note here..." required></textarea><br>
+        <button type="submit">Create Note</button>
+    </form>
+
 </body>
 </html>

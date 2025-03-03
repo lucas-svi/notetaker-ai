@@ -42,6 +42,17 @@ password VARCHAR(255)
 );
 ```
 
+3. Create notes table
+
+```sql
+CREATE TABLE notes (
+id INT AUTO_INCREMENT PRIMARY KEY,
+username VARCHAR(50),
+note TEXT NOT NULL,
+FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+);
+```
+
 ## 📜 License
 
 This project is licensed under the **MIT License** – see the [LICENSE](LICENSE) file for details.
