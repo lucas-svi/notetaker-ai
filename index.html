@@ -167,6 +167,7 @@
       function loadForm(form) {
         const frame = document.getElementById("auth-frame");
         frame.src = form;
+        frame.scrollIntoView({ behavior: 'smooth' });
       }
 
       const urlParams = new URLSearchParams(window.location.search);
