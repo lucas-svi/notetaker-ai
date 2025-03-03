@@ -31,6 +31,9 @@
           <li>
             <a href="./backend/dashboard.php">Dashboard</a>
           </li>
+          <li>
+            <a href="./backend/logout.php">Logout</a>
+          </li>
         </ul>
       </nav>
     </header>
@@ -167,11 +170,13 @@
       function loadForm(form) {
         const frame = document.getElementById("auth-frame");
         frame.src = form;
+        frame.scrollIntoView({ behavior: 'smooth' });
+        history.replaceState(null, '', window.location.pathname);
       }
-
+    
       const urlParams = new URLSearchParams(window.location.search);
       const auth = urlParams.get("auth");
-
+    
       if (auth === "signin") {
         loadForm("backend/signin.php");
       } else if (auth === "signup") {
