@@ -33,4 +33,29 @@ require 'db.php';
 <form action="logout.php" method="POST">
     <button type="submit">Logout</button>
 </form>
+<h2>Your Notes</h2>
 </html>
+<?php
+// Prepare the query
+$query = $conn->prepare("SELECT note FROM notes WHERE username = ?");
+// Bind the $username variable to the placeholder
+$query->bind_param("s", $username);
+$query->execute();
+$result = $query->get_result();
+
+// Check if any rows were returned
+if ($result->num_rows > 0) {
+    // Output data of each row
+    $note_num = 1;
+    while($row = $result->fetch_assoc()) {
+        // Display the note, escaping HTML to prevent XSS
+        echo "<p> [#$note_num] " . htmlspecialchars($row['note']) . "</p>";
+        $note_num++;
+    }
+} else {
+    echo "<p>No notes found.</p>";
+}
+
+$query->close();
+$conn->close();
+?>
