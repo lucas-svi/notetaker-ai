@@ -6,6 +6,18 @@ require 'authenticated.php';
 $username = $_SESSION['username'];
 $message = '';
 
+// Delete note
+if (isset($_GET['delete'])) {
+  $note_id = intval($_GET['delete']);
+  $delete_query = "DELETE FROM notes WHERE id='$note_id' AND username='$username'";
+  if (mysqli_query($conn, $delete_query)) {
+      header('Location: dashboard.php');
+      exit();
+  } else {
+      echo "<p style='color: red;'>Error deleting note.</p>";
+  }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $note = mysqli_real_escape_string($conn, $_POST['note']);
 
