@@ -46,9 +46,11 @@ $result = $query->get_result();
 // Check if any rows were returned
 if ($result->num_rows > 0) {
     // Output data of each row
+    $note_num = 1;
     while($row = $result->fetch_assoc()) {
         // Display the note, escaping HTML to prevent XSS
-        echo "<p> ~ " . htmlspecialchars($row['note']) . "</p>";
+        echo "<p> [#$note_num] " . htmlspecialchars($row['note']) . "</p>";
+        $note_num++;
     }
 } else {
     echo "<p>No notes found.</p>";
