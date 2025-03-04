@@ -30,4 +30,7 @@ require 'db.php';
     </form>
 
 </body>
+<form action="logout.php" method="POST">
+    <button type="submit">Logout</button>
+</form>
 </html>
