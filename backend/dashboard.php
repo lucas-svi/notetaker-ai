@@ -37,6 +37,7 @@ $result = $stmt->get_result();
                     <strong>Note <?php echo $note_num;?>:</strong> 
                     <?php echo htmlspecialchars($row['note']); ?>
                     [<a href="note.php?edit=<?php echo $row['id']; $note_num++;?>">Edit</a>]
+                    [<a href="note.php?delete=<?php echo $row['id'];?>">Delete</a>]
                 </li>
         </ul>
     <?php endwhile; ?>
