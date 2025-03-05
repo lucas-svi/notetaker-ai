@@ -1,8 +1,12 @@
 <?php
+session_start();
 require 'db.php';
 
 $message = '';
-
+if (isset($_SESSION['user_id'])) {
+  echo "<script>window.top.location = '../dashboard.php';</script>";
+  exit();
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
