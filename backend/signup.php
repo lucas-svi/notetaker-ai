@@ -3,7 +3,7 @@ session_start();
 require 'db.php';
 
 $message = '';
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['username'])) {
   echo "<script>window.top.location = '../dashboard.php';</script>";
   exit();
 }
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Parameterized query to check if user already exists
         $sql = "SELECT * FROM users WHERE username=? AND email = ?";
         $stmt = mysqli_prepare($conn, $sql);
-        
+
         mysqli_stmt_bind_param($stmt, "ss", $username, $email);
     
         mysqli_stmt_execute($stmt);
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
             $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
             $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "sss", $username, $email, $password);
+            mysqli_stmt_bind_param($stmt, "sss", $username, $email, $hashed_password);
 
             if (mysqli_stmt_execute($stmt)) {
               echo "<script>window.top.location = '../?auth=signin';</script>";
