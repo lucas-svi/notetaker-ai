@@ -3,28 +3,39 @@ session_start();
 require 'db.php';
 
 $message = '';
-if (isset($_SESSION['user_id'])) {
+if (isset($_SESSION['username'])) {
   echo "<script>window.top.location = '../dashboard.php';</script>";
   exit();
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = mysqli_real_escape_string($conn, $_POST['password']);
-    $confirm_password = mysqli_real_escape_string($conn, $_POST['confirm_password']);
+    // Get POST request info
+    $username = $_POST['username'];
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
 
     if ($password !== $confirm_password) {
         $message = "<p style='color: red;'>Passwords do not match.</p>";
     } else {
-        $query = "SELECT username, email FROM users WHERE username = '$username' OR email = '$email'";
-        $result = $conn->query($query);
+        // Parameterized query to check if user already exists
+        $sql = "SELECT * FROM users WHERE username=? AND email = ?";
+        $stmt = mysqli_prepare($conn, $sql);
+
+        mysqli_stmt_bind_param($stmt, "ss", $username, $email);
+    
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt) ;
 
         if ($result->num_rows > 0) {
             $message = "<p style='color: red;'>Username/Email are already taken. Please choose another one.</p>";
         } else {
+            // If passowrds match and username/email not taken, create user
             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$hashed_password')";
-            if (mysqli_query($conn, $sql)) {
+            $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+            $stmt = mysqli_prepare($conn, $sql);
+            mysqli_stmt_bind_param($stmt, "sss", $username, $email, $hashed_password);
+
+            if (mysqli_stmt_execute($stmt)) {
               echo "<script>window.top.location = '../?auth=signin';</script>";
               exit();
             } else {
