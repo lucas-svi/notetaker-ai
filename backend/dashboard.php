@@ -6,11 +6,26 @@ require 'db.php';
 
 $username = $_SESSION['username'];
 
-// Fetch notes from database
-$stmt = $conn->prepare("SELECT id, note FROM notes WHERE username = ? ORDER BY id ASC");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
+// Get user's notes
+$stmt_user_notes = $conn->prepare("
+    SELECT id, note, username 
+    FROM notes 
+    WHERE username = ? 
+");
+$stmt_user_notes->bind_param("s", $username);
+$stmt_user_notes->execute();
+$user_notes_result = $stmt_user_notes->get_result();
+
+// Get notes from everyone else
+$stmt_other_notes = $conn->prepare("
+    SELECT id, note, username 
+    FROM notes 
+    WHERE username != ? 
+");
+$stmt_other_notes->bind_param("s", $username);
+$stmt_other_notes->execute();
+$other_notes_result = $stmt_other_notes->get_result();
+
 ?>
 
 <!DOCTYPE html>
@@ -29,20 +44,38 @@ $result = $stmt->get_result();
         <button type="submit">Create Note</button>
     </form>
 
-    <h2>Your Notes:</h2>
-    <?php if ($result->num_rows > 0): $note_num = 1;?>
+    <!-- Show, Edit, or Delete Your Notes -->
+    <h2>Your Notes</h2>
+    <?php if ($user_notes_result->num_rows > 0): ?>
         <ul>
-            <?php while($row = $result->fetch_assoc()):?> 
-                <li>
-                    <strong>Note <?php echo $note_num;?>:</strong> 
-                    <?php echo htmlspecialchars($row['note']); ?>
-                    [<a href="note.php?edit=<?php echo $row['id']; $note_num++;?>">Edit</a>]
-                    [<a href="note.php?delete=<?php echo $row['id'];?>">Delete</a>]
+            <?php while($row = $user_notes_result->fetch_assoc()): ?>
+                <li style="margin-bottom:10px;">
+                    <?php echo nl2br(htmlspecialchars($row['note'])); ?>
+
+                    <!-- Show Edit and Delete links only for the logged-in user's notes -->
+                    [<a href="note.php?edit=<?php echo $row['id']; ?>">Edit</a>]
+                    [<a href="note.php?delete=<?php echo $row['id']; ?>">Delete</a>]
                 </li>
+            <?php endwhile; ?>
         </ul>
-    <?php endwhile; ?>
     <?php else: ?>
         <p>No notes found.</p>
+    <?php endif; ?>
+
+    <!-- Show other notes -->
+    <h2>Other People's Notes</h2>
+    <?php if ($other_notes_result->num_rows > 0): ?>
+        <ul>
+            <?php while($row = $other_notes_result->fetch_assoc()): ?>
+                <li style="margin-bottom:10px;">
+                    <strong>
+                    <?php echo htmlspecialchars($row['username']); ?>'s Note:</strong><br>
+                    <?php echo nl2br(htmlspecialchars($row['note'])); ?>
+                </li>
+            <?php endwhile; ?>
+        </ul>
+    <?php else: ?>
+        <p>No other notes found.</p>
     <?php endif; ?>
 
     <form action="logout.php" method="POST">
@@ -52,6 +85,7 @@ $result = $stmt->get_result();
 </html>
 
 <?php
-$stmt->close();
+$stmt_user_notes->close();
+$stmt_other_notes->close();
 $conn->close();
 ?>
