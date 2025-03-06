@@ -19,7 +19,10 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
 - **README.md** – This file
 - **LICENSE** - The MIT License under which this project is licensed by
 
-## 🛠️ How to Run
+## 🌐 How to Access the Website
+- We decided to host the website on Lucas' personal website, https://svirsky.dev/apps/notetaker-ai, since InfinityFree was giving us issues with the free usage quota.
+
+## 🛠️ How to Run Locally
 
 1. **Download or clone the repo:**
    ```bash
@@ -30,9 +33,11 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
    - Or, copy the full file path and paste it into your browser’s address bar.
 
 ## Database Setup
-
-1. Create the database called 'app-db'
-2. Create users table
+1. Make sure you have XAMPP downloaded.
+2. Run Apache and MySQL through XAMPP.
+3. Navigate to localhost/phpmyadmin.
+4. Create the database called 'app_db'.
+5. Create the users table.
 
 ```sql
 CREATE TABLE users (
@@ -42,7 +47,7 @@ password VARCHAR(255)
 );
 ```
 
-3. Create notes table
+6. Create the notes table
 
 ```sql
 CREATE TABLE notes (
