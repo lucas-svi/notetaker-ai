@@ -4,7 +4,7 @@ require 'db.php';
 
 $message = '';
 if (isset($_SESSION['username'])) {
-  echo "<script>window.top.location = '../dashboard.php';</script>";
+  echo "<script>window.top.location = '../backend/dashboard.php';</script>";
   exit();
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
