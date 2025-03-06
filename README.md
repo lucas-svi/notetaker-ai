@@ -58,11 +58,12 @@ FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 - Matthew's Picture
 <img width="1728" alt="image" src="https://github.com/user-attachments/assets/f9358840-ef2c-4578-aa66-7d4488409824" />
 
-
 - Ford's Picture
 <img width="1440" alt="Screenshot 2025-03-06 at 2 38 22 PM" src="https://github.com/user-attachments/assets/4a7fbe6e-699b-491f-9d3d-b754a917f278" />
 <img width="1440" alt="Screenshot 2025-03-06 at 2 38 42 PM" src="https://github.com/user-attachments/assets/50e97969-381b-4ae4-8daf-6f6bf509047d" />
 
+- Lucas' Picture
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/6cec6c1a-ba06-4899-869f-d3772106d905" />
 
 
 ## 📜 License
