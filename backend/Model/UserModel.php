@@ -25,13 +25,13 @@ class UserModel extends Database
         // Hash given password
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)"
+        $sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
         $stmt = mysqli_prepare($this->connection, $sql);
-        mysqli_stmt_bind_param($check_stmt, "sss", $username, $email, $hashed_password);
+        mysqli_stmt_bind_param($stmt, "sss", $username, $email, $hashed_password);
 
         // Execute statement and check if it works
         if (!mysqli_stmt_execute($stmt)) {
-            throw new Exception("An error occured while registering. Please try again later.")
+            throw new Exception("An error occured while registering. Please try again later.");
         }
 
         return true;
