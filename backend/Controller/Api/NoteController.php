@@ -1,5 +1,5 @@
 <?php
-class UserController extends BaseController
+class NoteController extends BaseController
 {
     /** 
 * "/note/list" Endpoint - Get list of notes 
