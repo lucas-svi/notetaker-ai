@@ -33,7 +33,7 @@ class UserModel extends Database
         if (!mysqli_stmt_execute($stmt)) {
             throw new Exception("An error occured while registering. Please try again later.");
         }
-
+        mysqli_stmt_close($stmt);
         return true;
     }
 }
