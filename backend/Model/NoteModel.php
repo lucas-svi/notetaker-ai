@@ -1,6 +1,6 @@
 <?php
 require_once PROJECT_ROOT_PATH . "/Model/Database.php";
-class UserModel extends Database
+class NoteModel extends Database
 {
     public function getNotes($limit)
     {
@@ -10,11 +10,12 @@ class UserModel extends Database
     public function createNote($username, $note)
     {
         $sql = "INSERT INTO notes (username, note) VALUES (?, ?)";
-        $stmt = mysqli_prepare($this->$conn, $sql);
-        mysqli_stmt_bind_param($stmt, "ss", $username, $note);
+        $stmt = mysqli_prepare($this->connection, $sql);
+
         if (!$stmt) {
             throw new Exception("Failed to prepare statement: " . mysqli_error($this->connection));
         }
+
         mysqli_stmt_bind_param($stmt, "ss", $username, $note);
 
         if (!mysqli_stmt_execute($stmt)) {
