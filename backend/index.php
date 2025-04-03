@@ -10,12 +10,23 @@ $uri = explode( '/', $uri );
 // For us, this is 3 (localhost/notetaker-ai/backend/index.php/...)
 $at_start = 3;
 
-if ((isset($uri[$at_start+1]) && $uri[$at_start+1] != 'user') || !isset($uri[$at_start+2])) {
+$endpoint = $uri[$at_start+1];
+
+if ((!isset($endpoint) || ($endpoint != 'user' && $endpoint != 'note') || !isset($uri[$at_start+2]))) {
     header("HTTP/1.1 404 Not Found");
     exit();
 }
-require PROJECT_ROOT_PATH . "/Controller/Api/UserController.php";
-$objFeedController = new UserController();
+
+// Set controller based on endpoint
+if ($endpoint == 'note') {
+    require PROJECT_ROOT_PATH . "/Controller/Api/NoteController.php";
+    $objFeedController = new NoteController();
+} else {
+    require PROJECT_ROOT_PATH . "/Controller/Api/UserController.php";
+    $objFeedController = new UserController();
+}
+
+// Set method name based on URI
 $strMethodName = $uri[$at_start+2] . 'Action';
 
 // Check if method exists
