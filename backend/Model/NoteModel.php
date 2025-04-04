@@ -31,10 +31,12 @@ class NoteModel extends Database
         mysqli_stmt_close($stmt); //Close the statement after execution
         return true; // Indicate success
     }
+
+
     public function deleteNote($note_id)
     {
         //Validate Input
-        if !is_int($note_id) {
+        if (!is_int($note_id)) {
             throw new Exception("Invalid input provided for deleting the note.");
         }
 
@@ -61,6 +63,8 @@ class NoteModel extends Database
     
         return true;
     }
+
+    
     public function updateNote($username, $note_id, $note)
     {
         // Validate inputs

@@ -116,6 +116,48 @@ class NoteController extends BaseController
             array('Content-Type: application/json', $strErrorHeader)
         );
     }
+    }
+
+    // Endpoint /note/update - update note
+    public function updateAction()
+    {
+        $strErrorDesc = '';
+        $requestMethod = $_SERVER["REQUEST_METHOD"];
+
+        if (strtoupper($requestMethod) == "PUT") {
+            // Update note
+            try {
+                parse_str(file_get_contents("php://input"), $_PUT);
+                $username = $_PUT['username'];
+                $note_id = intval($_PUT['id']);
+                $note = $_PUT['note'];
+
+                if ($note_id > 0 && strlen($note) > 0) {
+                    $noteModel = new NoteModel();
+                    $noteModel->updateNote($username, $note_id, $note);
+                    $responseData = json_encode(array('message' => 'Note updated successfully'));
+                } else {
+                    throw new Exception('Invalid input');
+                }
+            } catch (Error $e) {
+                $strErrorDesc = $e->getMessage();
+                $strErrorHeader = 'HTTP/1.1 400 Bad Request';
+            }
+        } else {
+            $strErrorDesc = 'Method not supported';
+            $strErrorHeader = 'HTTP/1.1 422 Unprocessable Entity';
+        }
+        // send output 
+        if (!$strErrorDesc) {
+            $this->sendOutput(
+                $responseData,
+                array('Content-Type: application/json', 'HTTP/1.1 200 OK')
+            );
+        } else {
+            $this->sendOutput(json_encode(array('error' => $strErrorDesc)), 
+                array('Content-Type: application/json', $strErrorHeader)
+            );
+        }
 }
 }
 ?>
