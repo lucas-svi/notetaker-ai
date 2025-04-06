@@ -79,7 +79,7 @@ class NoteController extends BaseController
         }
     }
 
-    // Endpoint /note/delete - delete note
+    // Endpoint /note/delete?id=X - delete note
     public function deleteAction()
     {
         $strErrorDesc = '';
