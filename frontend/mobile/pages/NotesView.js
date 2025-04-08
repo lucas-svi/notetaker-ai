@@ -49,10 +49,7 @@ const NotesView = () => {
           style: "destructive",
           onPress: async () => {
             try {
-              const formData = new URLSearchParams();
-              formData.append("id", noteId);
-
-              await api.post("/note/delete", formData);
+              await api.delete(`/note/delete?id=${noteId}`);
               fetchNotes();
             } catch (error) {
               Alert.alert("Error", "Failed to delete note");
