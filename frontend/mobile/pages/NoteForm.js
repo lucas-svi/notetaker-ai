@@ -15,6 +15,11 @@ const NoteForm = ({
 
   // Function to handle note creation or update
   const handleSubmit = async () => {
+    if (!content.trim()) {
+      setError("Note content cannot be empty");
+      return;
+    }
+
     setIsLoading(true);
     setError("");
 
@@ -24,19 +29,18 @@ const NoteForm = ({
 
     try {
       if (noteId) {
-        // Update note if noteId exists (PUT request)
-        const response = await api.put(`/note/${noteId}`, noteData);
-        console.log("Updated Note:", response.data);
+        noteData.append("id", noteId);
+        // Update note
+        await api.put(`/note/update`, noteData);
       } else {
-        // Create new note (POST request)
-        const response = await api.post("/note/create", noteData);
-        console.log("Created Note:", response.data);
+        // Create new note
+        await api.post("/note/create", noteData);
       }
 
-      onSubmitSuccess(); // Callback function to inform the parent about success
-      setIsLoading(false); // Set loading to false after request completion
+      onSubmitSuccess(); // This should trigger navigation back
     } catch (error) {
-      setError(error.response ? error.response.data : error.message);
+      setError(error.response?.data || error.message);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -49,7 +53,7 @@ const NoteForm = ({
 
       <TextInput
         style={styles.input}
-        placeholder="Content"
+        placeholder="Enter your note here..."
         value={content}
         onChangeText={setContent}
         multiline
