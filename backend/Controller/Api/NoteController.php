@@ -8,7 +8,7 @@ class NoteController extends BaseController
     {
         $strErrorDesc = '';
         $requestMethod = $_SERVER["REQUEST_METHOD"];
-        $arrQueryStringParams = $this->getQueryStringParams();
+        $arrQueryStringParams = $_GET;
         if (strtoupper($requestMethod) == 'GET') {
             try {
                 $noteModel = new NoteModel();
