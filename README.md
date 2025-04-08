@@ -58,10 +58,12 @@ FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );
 ```
 
-## phpMyAdmin
+## phpMyAdmin & Postman
 
 - Matthew's Picture
 <img width="1728" alt="image" src="https://github.com/user-attachments/assets/f9358840-ef2c-4578-aa66-7d4488409824" />
+<img width="834" alt="image" src="https://github.com/user-attachments/assets/6f9a779d-91c1-4a4a-8054-834ef92e47bc" />
+<img width="849" alt="image" src="https://github.com/user-attachments/assets/36560a02-d902-43e1-bb53-a8baaec824c1" />
 
 - Ford's Picture
 <img width="1440" alt="Screenshot 2025-03-06 at 2 38 22 PM" src="https://github.com/user-attachments/assets/4a7fbe6e-699b-491f-9d3d-b754a917f278" />
