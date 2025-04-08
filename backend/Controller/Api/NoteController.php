@@ -39,6 +39,45 @@ class NoteController extends BaseController
         }
     }
 
+
+    // Endpoint /note/get?id=X - get one note
+    public function getAction()
+    {
+        $strErrorDesc = '';
+        $requestMethod = $_SERVER["REQUEST_METHOD"];
+        $arrQueryStringParams = $_GET;
+        if (strtoupper($requestMethod) == 'GET') {
+            try {
+                $noteModel = new NoteModel();
+                $note_id = intval($arrQueryStringParams['id']);
+                if ($note_id > 0) {
+                    $arrNote = $noteModel->getOneNote($note_id);
+                    $responseData = json_encode($arrNote);
+                } else {
+                    throw new Exception('Invalid note ID');
+                }
+            } catch (Error $e) {
+                $strErrorDesc = $e->getMessage();
+                $strErrorHeader = 'HTTP/1.1 400 Bad Request';
+            }
+        } else {
+            $strErrorDesc = 'Method not supported';
+            $strErrorHeader = 'HTTP/1.1 422 Unprocessable Entity';
+        }
+        // send output 
+        if (!$strErrorDesc) {
+            $this->sendOutput(
+                $responseData,
+                array('Content-Type: application/json', 'HTTP/1.1 200 OK')
+            );
+        } else {
+            $this->sendOutput(json_encode(array('error' => $strErrorDesc)), 
+                array('Content-Type: application/json', $strErrorHeader)
+            );
+        }
+    }
+
+
     // Endpoint /note/create - create new note
     public function createAction()
     {

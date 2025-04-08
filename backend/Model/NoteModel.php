@@ -7,6 +7,12 @@ class NoteModel extends Database
         return $this->select("SELECT * FROM notes ORDER BY id ASC LIMIT ?", ["i", $limit]);
     }
 
+    public function getOneNote($note_id)
+    {
+        $note_id = intval($note_id);
+        return $this->select("SELECT * FROM notes WHERE id=?", ["i", $note_id]); 
+    }
+
     public function createNote($username, $note)
     {
         //Validate Input Parameters
