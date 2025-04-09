@@ -89,7 +89,7 @@ class NoteController extends BaseController
                 $username = $_POST['username'];
                 $note = $_POST['note'];
 
-                if (strlen($note) < 10) {
+                if (strlen($note) < 1) {
                     throw new Exception("Note cannot be empty.");
                 }
 
