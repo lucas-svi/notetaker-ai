@@ -12,11 +12,11 @@ import {
 import api from "../api";
 import NoteForm from "./NoteForm";
 
-const NotesView = () => {
+const NotesView = ({ username }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState("a");
+  const [currentUser, setCurrentUser] = useState(username);
   const [showForm, setShowForm] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
 

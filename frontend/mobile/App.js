@@ -5,7 +5,7 @@ import NotesView from "./pages/NotesView";
 const App = () => {
   return (
     <View style={styles.container}>
-      <NotesView />
+      <NotesView username="a" />
     </View>
   );
 };
