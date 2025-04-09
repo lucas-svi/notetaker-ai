@@ -45,6 +45,6 @@ try {
     $objFeedController->{$strMethodName}();
 } catch (Exception $e) {
     header("HTTP/1.1 500 Internal Server Error");
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['error' => "An error occurred while processing your request. Please try again later."]);
 }
 ?>
