@@ -100,6 +100,8 @@ FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 
 - Lucas' Picture
 <img width="1440" alt="image" src="https://github.com/user-attachments/assets/6cec6c1a-ba06-4899-869f-d3772106d905" />
+<img width="1440" alt="image" src="https://github.com/user-attachments/assets/0e6681cd-b7a5-4108-9859-721214ce9d8f" />
+
 
 
 ## 📜 License
