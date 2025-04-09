@@ -96,7 +96,7 @@ class NoteController extends BaseController
                 $noteModel = new NoteModel();
                 $noteModel->createNote($username, $note);
 
-                $responseData = json_encode(['success' => true, 'message' => "User created successfully"]);
+                $responseData = json_encode(['success' => true, 'message' => "Note created successfully"]);
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage();
                 $strErrorHeader = 'HTTP/1.1 400 Bad Request';
