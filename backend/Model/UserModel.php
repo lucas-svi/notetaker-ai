@@ -36,5 +36,26 @@ class UserModel extends Database
         mysqli_stmt_close($stmt);
         return true;
     }
+
+    public function authenticateUser($username, $password)
+    {
+        $sql = "SELECT * FROM users WHERE username=?";
+        $stmt = mysqli_prepare($this->connection, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $username);
+        mysqli_stmt_execute($stmt);
+        $result = mysqli_stmt_get_result($stmt);
+        $user = mysqli_fetch_assoc($result);
+        mysqli_stmt_close($stmt);
+
+        if (!$user) {
+            throw new Exception("Invalid username or password");
+        }
+
+        if (!password_verify($password, $user['password'])) {
+            throw new Exception("Invalid username or password");
+        }
+
+        return $user;
+    }
 }
 ?>

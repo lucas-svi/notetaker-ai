@@ -62,8 +62,16 @@ class UserController extends BaseController
 
                 $userModel = new UserModel();
                 $userModel->createUser($username, $email, $password);
+                
+                $responseData = json_encode([
+                    'success' => true, 
+                    'message' => "Signup successful",
+                    'user' => [
+                        'username' => $username,
+                        'email' => $email
+                    ]
+                ]);
 
-                $responseData = json_encode(['success' => true, 'message' => "User created successfully"]);
             } catch (Error $e) {
                 $strErrorDesc = $e->getMessage();
                 $strErrorHeader = 'HTTP/1.1 400 Bad Request';
@@ -77,6 +85,64 @@ class UserController extends BaseController
             $this->sendOutput(
                 $responseData,
                 array('Content-Type: application/json', 'HTTP/1.1 201 CREATED')
+            );
+        } else {
+            $this->sendOutput(json_encode(array('error' => $strErrorDesc)), 
+                array('Content-Type: application/json', $strErrorHeader)
+            );
+        }
+    }
+
+    /**
+     * "/user/login" Endpoint - Authenticate user
+     */
+    public function loginAction()
+    {
+        $strErrorDesc = '';
+        $requestMethod = $_SERVER["REQUEST_METHOD"];
+
+        if (strtoupper($requestMethod) == 'POST') {
+            try {
+                // Get login credentials from POST data
+                $loginIdentifier = $_POST['username']; // Can be username or email
+                $password = $_POST['password'];
+
+                // Validate input
+                if (empty($loginIdentifier) || empty($password)) {
+                    throw new Exception("Login credentials are required.");
+                }
+
+                $userModel = new UserModel();
+                $user = $userModel->authenticateUser($loginIdentifier, $password);
+
+                if ($user) {
+                    // Authentication successful
+                    $responseData = json_encode([
+                        'success' => true, 
+                        'message' => "Login successful",
+                        'user' => [
+                            'username' => $user['username'],
+                            'email' => $user['email']
+                        ]
+                    ]);
+                } else {
+                    // Authentication failed
+                    throw new Exception("Invalid username/email or password.");
+                }
+            } catch (Exception $e) {
+                $strErrorDesc = $e->getMessage();
+                $strErrorHeader = 'HTTP/1.1 401 Unauthorized';
+            }
+        } else {
+            $strErrorDesc = 'Method not supported';
+            $strErrorHeader = 'HTTP/1.1 422 Unprocessable Entity';
+        }
+        
+        // send output 
+        if (!$strErrorDesc) {
+            $this->sendOutput(
+                $responseData,
+                array('Content-Type: application/json', 'HTTP/1.1 200 OK')
             );
         } else {
             $this->sendOutput(json_encode(array('error' => $strErrorDesc)), 

@@ -1,11 +1,11 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import NotesView from "./pages/NotesView";
+import Homepage from "./pages/homepage";
 
 const App = () => {
   return (
     <View style={styles.container}>
-      <NotesView username="a" />
+      <Homepage />
     </View>
   );
 };

@@ -12,11 +12,11 @@ import {
 import api from "../api";
 import NoteForm from "./NoteForm";
 
-const NotesView = ({ username }) => {
+const NotesView = ({ userData }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentUser, setCurrentUser] = useState(username);
+  const [currentUser, setCurrentUser] = useState(userData.username);
   const [showForm, setShowForm] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
 
@@ -121,7 +121,7 @@ const NotesView = ({ username }) => {
       </View>
 
       <ScrollView style={styles.notesList}>
-        {notes.map((note) => (
+        {notes.length > 0 ? notes.map((note) => (
           <View key={note.id} style={styles.noteCard}>
             <View style={styles.noteHeader}>
               <Text style={styles.username}>@{note.username}</Text>
@@ -147,7 +147,11 @@ const NotesView = ({ username }) => {
               </View>
             )}
           </View>
-        ))}
+        )) : (
+          <View style={styles.noNotes}>
+            <Text style={styles.noNotesText}>No notes yet</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -237,6 +241,15 @@ const styles = StyleSheet.create({
   error: {
     color: "red",
     textAlign: "center",
+  },
+  noNotes: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noNotesText: {
+    fontSize: 16,
+    color: "#666",
   },
 });
 

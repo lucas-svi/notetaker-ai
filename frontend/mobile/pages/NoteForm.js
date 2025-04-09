@@ -6,7 +6,7 @@ const NoteForm = ({
   noteId = null,
   initialContent = "",
   onSubmitSuccess = () => {},
-  username = "a", // Default username or pass as a prop
+  username = "You",
 }) => {
   // State for form fields
   const [content, setContent] = useState(initialContent);
