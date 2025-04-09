@@ -31,6 +31,32 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
 2. **Open `index.html` in your browser**
    - Double-click the file to open it.
    - Or, copy the full file path and paste it into your browser’s address bar.
+  
+## For Mobile
+
+1. **Make Necessary Adjustments**
+   
+  Change IP address to your IP address in mobile/api.js
+  
+  baseURL: "http://    **IP**    /notetaker-ai/backend/index.php"
+  
+  While here, you can also change the base url if your folder structure looks different.
+  If you do this, also go to backend/index.php and update $at_start in line to be the correct number.
+  Currently it is set to 3 for the amount of arguments after localhost: /notetaker-ai/backend/index.php
+  
+2. **Run Backend Setup**
+
+   This setup is next in the README
+
+3. **Run Mobile Frontend**
+
+   Run
+   ```bash
+   cd frontend/mobile
+   npm i
+   npm run android
+   ```
+   while android studio is open
 
 ## Database Setup
 1. Make sure you have XAMPP downloaded.
