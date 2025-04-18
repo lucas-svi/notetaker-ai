@@ -207,6 +207,7 @@ $other_notes_result = $stmt_other_notes->get_result();
                                 <?php echo nl2br(htmlspecialchars($row['note'])); ?>
                             </div>
                             <div class="note-actions">
+                                <a href="ai.php?note_id=<?php echo $row['id']; ?>" class="action-link">AI</a>
                                 <a href="note.php?edit=<?php echo $row['id']; ?>" class="action-link">Edit</a>
                                 <a href="note.php?delete=<?php echo $row['id']; ?>" class="action-link">Delete</a>
                             </div>
