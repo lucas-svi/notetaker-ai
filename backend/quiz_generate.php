@@ -1,7 +1,7 @@
 <?php
 // === CONFIG & BOILERPLATE ===
 // Import the API key from the environment variable
-$geminiApiKey = "GEMINI_API_KEY";
+include 'api_key.php' ;
 if (empty($geminiApiKey)) {
     die('Gemini API key not configured.');
 }
