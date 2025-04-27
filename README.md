@@ -96,6 +96,7 @@ CREATE TABLE quiz (
     choice_c TEXT NOT NULL,
     choice_d TEXT NOT NULL,
     correct_choice CHAR(1) NOT NULL,
+    difficulty ENUM('easy', 'medium', 'hard') NOT NULL DEFAULT 'medium',
     FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
 );
 ```
