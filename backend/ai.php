@@ -1,10 +1,9 @@
 <?php
 // === CONFIG & BOILERPLATE ===
-// Make sure you’ve set your API key in the environment:
-//    export OPENAI_API_KEY="sk-…"
-$openaiApiKey = getenv('OPENAI_API_KEY');
-if (empty($openaiApiKey)) {
-    die('OpenAI API key not configured.');
+// Import the API key from the environment variable
+$geminiApiKey = "GEMINI_API_KEY";
+if (empty($geminiApiKey)) {
+    die('Gemini API key not configured.');
 }
 
 // Include your database connection (adjust path as needed)
@@ -23,10 +22,9 @@ if ( empty($_SESSION['username']) ) {
 }
 $username = $_SESSION['username'];
 
-// === 2) CALL OPENAI VIA CURL ===
-$endpoint = 'https://api.openai.com/v1/chat/completions';
+// === 2) CALL GEMINI API VIA CURL ===
+$endpoint = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 $headers  = [
-    'Authorization: Bearer ' . $openaiApiKey,
     'Content-Type: application/json',
 ];
 
@@ -35,31 +33,45 @@ $note_content = mysqli_fetch_assoc($note_content);
 $note_content = $note_content['note'];
 
 $body = json_encode([
-    'model'     => 'gpt-4o-mini',
-    'messages'  => [
-        ['role'=>'system','content'=>'You are a study assistant that creates detailed, structured summaries for notes.'],
-        ['role'=>'user','content'=>"{$note_content}"],
+    'contents' => [
+        [
+            'parts' => [
+                [
+                    'text' => "You are a study assistant that creates detailed, structured summaries for notes. Here are the notes to summarize:\n\n{$note_content}"
+                ]
+            ]
+        ]
     ],
-    'max_tokens'  => 1000,
-    'temperature' => 0.4,
+    'generationConfig' => [
+        'temperature' => 0.4,
+        'maxOutputTokens' => 1000
+    ],
+    'safetySettings' => [
+        [
+            'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            'threshold' => 'BLOCK_ONLY_HIGH'
+        ]
+    ]
 ]);
 
-$ch = curl_init($endpoint);
-curl_setopt($ch, CURLOPT_POST,           true);
-curl_setopt($ch, CURLOPT_HTTPHEADER,     $headers);
-curl_setopt($ch, CURLOPT_POSTFIELDS,     $body);
+$url = $endpoint . '?key=' . $geminiApiKey;
+
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($ch);
 
 if (curl_errno($ch)) {
-    error_log('OpenAI cURL error: ' . curl_error($ch));
+    error_log('Gemini cURL error: ' . curl_error($ch));
     $note_text = 'AI summary unavailable at the moment.';
 } else {
     $data = json_decode($response, true);
-    if (isset($data['choices'][0]['message']['content'])) {
-        $note_text = trim($data['choices'][0]['message']['content']);
+    if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+        $note_text = trim($data['candidates'][0]['content']['parts'][0]['text']);
     } else {
-        error_log('OpenAI response error: ' . $response);
+        error_log('Gemini response error: ' . $response);
         $note_text = 'AI summary unavailable at the moment.';
     }
 }

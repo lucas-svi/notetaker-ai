@@ -1,8 +1,9 @@
 <?php
 // === CONFIG & BOILERPLATE ===
-$openaiApiKey = getenv('OPENAI_API_KEY');
-if (empty($openaiApiKey)) {
-    die('OpenAI API key not configured.');
+// Import the API key from the environment variable
+$geminiApiKey = "GEMINI_API_KEY";
+if (empty($geminiApiKey)) {
+    die('Gemini API key not configured.');
 }
 
 // Include database connection
@@ -35,10 +36,9 @@ $note_data = $result->fetch_assoc();
 $note_content = $note_data['note'];
 $stmt->close();
 
-// === 3) CALL OPENAI VIA CURL TO GENERATE QUESTIONS OF VARYING DIFFICULTY ===
-$endpoint = 'https://api.openai.com/v1/chat/completions';
+// === 3) CALL GEMINI API VIA CURL TO GENERATE QUESTIONS OF VARYING DIFFICULTY ===
+$endpoint = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
 $headers  = [
-    'Authorization: Bearer ' . $openaiApiKey,
     'Content-Type: application/json',
 ];
 
@@ -77,17 +77,30 @@ $note_content
 EOT;
 
 $body = json_encode([
-    'model'     => 'gpt-4o-mini',
-    'messages'  => [
-        ['role' => 'system', 'content' => 'You are a quiz generator that creates multiple choice questions based on note content.'],
-        ['role' => 'user', 'content' => $prompt],
+    'contents' => [
+        [
+            'parts' => [
+                [
+                    'text' => $prompt
+                ]
+            ]
+        ]
     ],
-    'max_tokens'  => 1500,
-    'temperature' => 0.4,
-    'response_format' => ['type' => 'json_object'],
+    'generationConfig' => [
+        'temperature' => 0.4,
+        'maxOutputTokens' => 1500
+    ],
+    'safetySettings' => [
+        [
+            'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            'threshold' => 'BLOCK_ONLY_HIGH'
+        ]
+    ]
 ]);
 
-$ch = curl_init($endpoint);
+$url = $endpoint . '?key=' . $geminiApiKey;
+
+$ch = curl_init($url);
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -95,7 +108,7 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $response = curl_exec($ch);
 
 if (curl_errno($ch)) {
-    error_log('OpenAI cURL error: ' . curl_error($ch));
+    error_log('Gemini cURL error: ' . curl_error($ch));
     die('Failed to generate quiz questions. Please try again later.');
 }
 
@@ -104,14 +117,19 @@ curl_close($ch);
 // === 4) PROCESS THE RESPONSE ===
 $data = json_decode($response, true);
 
-// Check if the response contains valid JSON with the questions
-if (!isset($data['choices'][0]['message']['content'])) {
-    error_log('OpenAI response error: ' . $response);
+// Check if the response contains valid content
+if (!isset($data['candidates'][0]['content']['parts'][0]['text'])) {
+    error_log('Gemini response error: ' . $response);
     die('Failed to generate valid quiz questions. Please try again later.');
 }
 
 // Parse the JSON content containing the questions
-$questions_json = $data['choices'][0]['message']['content'];
+$questions_json = $data['candidates'][0]['content']['parts'][0]['text'];
+
+// Clean the response if it contains markdown code blocks
+$questions_json = preg_replace('/```json\s*([\s\S]*?)\s*```/', '$1', $questions_json);
+$questions_json = preg_replace('/```\s*([\s\S]*?)\s*```/', '$1', $questions_json);
+
 $questions = json_decode($questions_json, true);
 
 if (!is_array($questions)) {
