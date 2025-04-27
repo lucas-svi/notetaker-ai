@@ -101,6 +101,21 @@ CREATE TABLE quiz (
 );
 ```
 
+8. Create the responses table
+```sql
+CREATE TABLE quiz_responses (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     username VARCHAR(50),
+     note_id INT,
+     score INT,
+     total INT,
+     points_earned INT,
+     time_taken TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
+     FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
+);
+```
+
 ## phpMyAdmin & Postman
 
 - Matthew's Picture
