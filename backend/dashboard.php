@@ -182,9 +182,14 @@ $other_notes_result = $stmt_other_notes->get_result();
     <div class="dashboard-container">
         <div class="welcome-header">
             <h1>Welcome, <?php echo htmlspecialchars($username); ?></h1>
-            <form action="logout.php" method="POST">
-                <button type="submit" class="logout-button">Logout</button>
-            </form>
+            <div style="display: flex; gap: 10px;">
+                <a href="quiz_history.php" style="text-decoration: none;">
+                    <button type="button" style="background-color: #66a3ff;">Quiz History</button>
+                </a>
+                <form action="logout.php" method="POST">
+                    <button type="submit" class="logout-button">Logout</button>
+                </form>
+            </div>
         </div>
 
         <div class="note-form-container">
@@ -208,6 +213,7 @@ $other_notes_result = $stmt_other_notes->get_result();
                             </div>
                             <div class="note-actions">
                                 <a href="ai.php?note_id=<?php echo $row['id']; ?>" class="action-link">AI</a>
+                                <a href="quiz.php?note_id=<?php echo $row['id']; ?>" class="action-link">Quiz</a>
                                 <a href="note.php?edit=<?php echo $row['id']; ?>" class="action-link">Edit</a>
                                 <a href="note.php?delete=<?php echo $row['id']; ?>" class="action-link">Delete</a>
                             </div>

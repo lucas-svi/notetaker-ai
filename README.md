@@ -69,7 +69,8 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
 CREATE TABLE users (
 username VARCHAR(50) PRIMARY KEY,
 email VARCHAR(50),
-password VARCHAR(255)
+password VARCHAR(255),
+quiz_points INT DEFAULT 1000
 );
 ```
 
@@ -81,6 +82,37 @@ id INT AUTO_INCREMENT PRIMARY KEY,
 username VARCHAR(50),
 note TEXT NOT NULL,
 FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+);
+```
+
+7. Create the quiz table
+```sql
+CREATE TABLE quiz (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    note_id INT,
+    question TEXT NOT NULL,
+    choice_a TEXT NOT NULL,
+    choice_b TEXT NOT NULL,
+    choice_c TEXT NOT NULL,
+    choice_d TEXT NOT NULL,
+    correct_choice CHAR(1) NOT NULL,
+    difficulty ENUM('easy', 'medium', 'hard') NOT NULL DEFAULT 'medium',
+    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
+);
+```
+
+8. Create the responses table
+```sql
+CREATE TABLE quiz_responses (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     username VARCHAR(50),
+     note_id INT,
+     score INT,
+     total INT,
+     points_earned INT,
+     time_taken TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
+     FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
 );
 ```
 
