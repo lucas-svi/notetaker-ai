@@ -18,10 +18,10 @@ $at_start = 3;
 $endpoint = $uri[$at_start + 1] ?? null;
 $action   = $uri[$at_start + 2] ?? null;
 
-// allow ‘user’, ‘note’ or ‘ai’
+// allow 'user', 'note', 'ai' or 'quiz'
 if (
     !isset($endpoint)
- || !in_array($endpoint, ['user','note','ai'])
+ || !in_array($endpoint, ['user','note','ai','quiz'])
  || !isset($action)
 ) {
     header("HTTP/1.1 404 Not Found");
@@ -40,6 +40,10 @@ elseif ($endpoint === 'user') {
 elseif ($endpoint === 'ai') {
     require PROJECT_ROOT_PATH . "Controller/Api/AIController.php";
     $objFeedController = new AIController();
+}
+elseif ($endpoint === 'quiz') {
+    require PROJECT_ROOT_PATH . "Controller/Api/QuizController.php";
+    $objFeedController = new QuizController();
 }
 
 // build and invoke method
