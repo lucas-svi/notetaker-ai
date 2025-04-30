@@ -7,6 +7,18 @@ class UserModel extends Database
         return $this->select("SELECT * FROM users ORDER BY username ASC LIMIT ?", ["i", $limit]);
     }
 
+    public function getLeaderboard(int $limit = 20): array {
+        $sql = "SELECT username, quiz_points
+                FROM users
+                ORDER BY quiz_points DESC
+                LIMIT ?";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bind_param('i', $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function createUser($username, $email, $password)
     {
         // Check to see if user already exists

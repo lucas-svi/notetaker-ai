@@ -183,6 +183,9 @@ $other_notes_result = $stmt_other_notes->get_result();
         <div class="welcome-header">
             <h1>Welcome, <?php echo htmlspecialchars($username); ?></h1>
             <div style="display: flex; gap: 10px;">
+                <a href="index.php/user/leaderboard" style="text-decoration: none;">
+                    <button type="button" style="background-color:rgb(7, 82, 54);">Leaderboard</button>
+                </a>
                 <a href="quiz_history.php" style="text-decoration: none;">
                     <button type="button" style="background-color: #66a3ff;">Quiz History</button>
                 </a>
