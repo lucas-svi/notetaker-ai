@@ -1,8 +1,7 @@
 <?php
-// quiz.php
+// quiz_view.php - Uses REST API instead of direct database operations
 session_start();
 require 'authenticated.php';
-require 'db.php';
 
 $username = $_SESSION['username'];
 
@@ -13,117 +12,96 @@ if (!isset($_GET['note_id']) || !ctype_digit($_GET['note_id'])) {
 }
 
 $note_id = (int) $_GET['note_id'];
+$api_base_url = "http://{$_SERVER['HTTP_HOST']}/notetaker-ai/backend/index.php";
 
-// Check if the note belongs to the user
-$stmt = $conn->prepare("SELECT note FROM notes WHERE id = ? AND username = ?");
-$stmt->bind_param("is", $note_id, $username);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    header('Location: dashboard.php');
-    exit();
+// Function to make API calls
+function callAPI($method, $endpoint, $data = false) {
+    global $api_base_url;
+    $url = $api_base_url . $endpoint;
+    
+    $curl = curl_init();
+    
+    switch ($method) {
+        case "GET":
+            if ($data) {
+                $url = sprintf("%s?%s", $url, http_build_query($data));
+            }
+            break;
+        case "POST":
+            curl_setopt($curl, CURLOPT_POST, 1);
+            if ($data) {
+                curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+            }
+            break;
+        default:
+            break;
+    }
+    
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json'
+    ));
+    
+    $result = curl_exec($curl);
+    curl_close($curl);
+    
+    return json_decode($result, true);
 }
 
-$note_data = $result->fetch_assoc();
-$note_content = $note_data['note'];
-$stmt->close();
+// Fetch the note content from the API
+$noteResponse = callAPI("GET", "/note/getNote", ["id" => $note_id]);
+$note_content = isset($noteResponse['note']) ? $noteResponse['note'] : "Loading note content...";
 
-// Get user's current quiz points
-$stmt = $conn->prepare("SELECT quiz_points FROM users WHERE username = ?");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
-$user_data = $result->fetch_assoc();
-$current_points = $user_data['quiz_points'];
-$stmt->close();
-
-// Get quiz questions
-$stmt = $conn->prepare("SELECT * FROM quiz WHERE note_id = ? ORDER BY difficulty ASC");
-$stmt->bind_param("i", $note_id);
-$stmt->execute();
-$questions_result = $stmt->get_result();
-$stmt->close();
+// Get user's current quiz points from quiz history API
+$historyResponse = callAPI("GET", "/quiz/getHistory", ["username" => $username]);
+$current_points = 0;
+if (isset($historyResponse['success']) && $historyResponse['success'] && isset($historyResponse['stats']['current_points'])) {
+    $current_points = $historyResponse['stats']['current_points'];
+}
 
 // Process quiz submission
+$quiz_taken = false;
+$quiz_score = 0;
+$quiz_total = 0;
+$quiz_points = 0;
+$percentage = 0;
+$quiz_detailed_results = [];
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
-    $score = 0;
-    $total = 0;
-    $points_earned = 0;
-    $difficulty_points = [
-        'easy' => 10,
-        'medium' => 20,
-        'hard' => 50
-    ];
-    
-    // Track user's answers and correct answers for each question
-    $quiz_results = [];
-    
+    $answers = [];
     foreach ($_POST as $key => $answer) {
         if (strpos($key, 'question_') === 0) {
             $question_id = substr($key, 9);
-            $total++;
-            
-            // Verify correct answer and get difficulty
-            $stmt = $conn->prepare("SELECT question, choice_a, choice_b, choice_c, choice_d, correct_choice, difficulty FROM quiz WHERE id = ?");
-            $stmt->bind_param("i", $question_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $question_difficulty = $row['difficulty'];
-                $is_correct = ($answer === $row['correct_choice']);
-                
-                // Add to results array
-                $quiz_results[] = [
-                    'question' => $row['question'],
-                    'user_answer' => $answer,
-                    'correct_answer' => $row['correct_choice'],
-                    'is_correct' => $is_correct,
-                    'difficulty' => $question_difficulty,
-                    'options' => [
-                        'A' => $row['choice_a'],
-                        'B' => $row['choice_b'],
-                        'C' => $row['choice_c'],
-                        'D' => $row['choice_d']
-                    ]
-                ];
-                
-                if ($is_correct) {
-                    $score++;
-                    // Award points based on difficulty
-                    $points_earned += $difficulty_points[$question_difficulty];
-                }
-            }
-            
-            $stmt->close();
+            $answers[$question_id] = $answer;
         }
     }
     
-    // Save quiz results
-    $stmt = $conn->prepare("INSERT INTO quiz_responses (username, note_id, score, total, points_earned) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("siiii", $username, $note_id, $score, $total, $points_earned);
-    $stmt->execute();
-    $stmt->close();
+    // Submit quiz answers to API
+    $response = callAPI("POST", "/quiz/submitQuiz", [
+        "username" => $username,
+        "note_id" => $note_id,
+        "answers" => $answers
+    ]);
     
-    // Update user's points
-    $new_points = $current_points + $points_earned;
-    $stmt = $conn->prepare("UPDATE users SET quiz_points = ? WHERE username = ?");
-    $stmt->bind_param("is", $new_points, $username);
-    $stmt->execute();
-    $stmt->close();
-    
-    // Show results
-    $quiz_taken = true;
-    $quiz_score = $score;
-    $quiz_total = $total;
-    $quiz_points = $points_earned;
-    $percentage = ($score / $total) * 100;
-    $quiz_detailed_results = $quiz_results;
-} else {
-    $quiz_taken = false;
+    if (isset($response['success']) && $response['success']) {
+        $quiz_taken = true;
+        $result_data = $response['results'];
+        $quiz_score = $result_data['score'];
+        $quiz_total = $result_data['total'];
+        $quiz_points = $result_data['points_earned'];
+        $percentage = $result_data['percentage'];
+        $quiz_detailed_results = $result_data['detailed_results'];
+        
+        // Update current points with the new value from the quiz submission result
+        $current_points = $result_data['new_points'];
+    }
 }
+
+// Get quiz questions
+$questions_result = callAPI("GET", "/quiz/getQuiz", ["note_id" => $note_id]);
+$has_questions = isset($questions_result['success']) && $questions_result['success'] && !empty($questions_result['questions']);
+$questions = $has_questions ? $questions_result['questions'] : [];
 
 ?>
 
@@ -360,15 +338,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
             </div>
         </div>
         
-        <div class="note-preview">
-            <h3>Based on your note:</h3>
-            <p><?php echo nl2br(htmlspecialchars(substr($note_content, 0, 300))); ?>
-            <?php if (strlen($note_content) > 300): ?>
-                <span>...</span>
-            <?php endif; ?>
-            </p>
-        </div>
-        
         <?php if ($quiz_taken): ?>
             <div class="results-card">
                 <h2>Quiz Results</h2>
@@ -377,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
                 <div class="points-earned">+ <?php echo $quiz_points; ?> points earned!</div>
                 
                 <div class="action-buttons">
-                    <a href="quiz.php?note_id=<?php echo $note_id; ?>" class="action-button primary-button">Take Quiz Again</a>
+                    <a href="quiz_view.php?note_id=<?php echo $note_id; ?>" class="action-button primary-button">Take Quiz Again</a>
                     <a href="dashboard.php" class="action-button secondary-button">Back to Dashboard</a>
                 </div>
                 
@@ -404,11 +373,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
                     <?php endforeach; ?>
                 </div>
             </div>
-        <?php elseif ($questions_result->num_rows > 0): ?>
+        <?php elseif ($has_questions): ?>
             <form method="post" action="">
                 <?php 
                 $question_num = 1;
-                while ($question = $questions_result->fetch_assoc()): 
+                foreach ($questions as $question): 
                     $difficulty_class = $question['difficulty'] . '-tag';
                 ?>
                     <div class="quiz-card">
@@ -421,32 +390,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
                             <li class="option-item">
                                 <label class="option-label">
                                     <input type="radio" name="question_<?php echo $question['id']; ?>" value="A" required>
-                                    A: <?php echo htmlspecialchars($question['choice_a']); ?>
+                                    A: <?php echo htmlspecialchars($question['options']['A']); ?>
                                 </label>
                             </li>
                             <li class="option-item">
                                 <label class="option-label">
                                     <input type="radio" name="question_<?php echo $question['id']; ?>" value="B">
-                                    B: <?php echo htmlspecialchars($question['choice_b']); ?>
+                                    B: <?php echo htmlspecialchars($question['options']['B']); ?>
                                 </label>
                             </li>
                             <li class="option-item">
                                 <label class="option-label">
                                     <input type="radio" name="question_<?php echo $question['id']; ?>" value="C">
-                                    C: <?php echo htmlspecialchars($question['choice_c']); ?>
+                                    C: <?php echo htmlspecialchars($question['options']['C']); ?>
                                 </label>
                             </li>
                             <li class="option-item">
                                 <label class="option-label">
                                     <input type="radio" name="question_<?php echo $question['id']; ?>" value="D">
-                                    D: <?php echo htmlspecialchars($question['choice_d']); ?>
+                                    D: <?php echo htmlspecialchars($question['options']['D']); ?>
                                 </label>
                             </li>
                         </ul>
                     </div>
                 <?php 
                     $question_num++;
-                endwhile; 
+                endforeach; 
                 ?>
                 
                 <button type="submit" name="submit_quiz" class="submit-button">Submit Answers</button>
@@ -455,11 +424,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_quiz'])) {
             <div class="no-questions">
                 <h2>No quiz questions found for this note</h2>
                 <p>Generate multiple choice questions based on your note content.</p>
-                <a href="quiz_generate.php?note_id=<?php echo $note_id; ?>" class="generate-button">Generate Quiz Questions</a>
+                <button onclick="generateQuiz()" class="generate-button">Generate Quiz Questions</button>
             </div>
+            
+            <script>
+                function generateQuiz() {
+                    // Show loading indicator
+                    document.querySelector('.no-questions').innerHTML = '<h2>Generating quiz questions...</h2><p>Please wait while we analyze your note and create questions.</p>';
+                    
+                    // Make API call to generate quiz
+                    fetch('<?php echo $api_base_url; ?>/quiz/generateQuiz?note_id=<?php echo $note_id; ?>', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload the page to show the quiz
+                            window.location.reload();
+                        } else {
+                            document.querySelector('.no-questions').innerHTML = '<h2>Error</h2><p>' + (data.error || 'Failed to generate quiz questions. Please try again.') + '</p><button onclick="generateQuiz()" class="generate-button">Try Again</button>';
+                        }
+                    })
+                    .catch(error => {
+                        document.querySelector('.no-questions').innerHTML = '<h2>Error</h2><p>Failed to generate quiz questions. Please try again.</p><button onclick="generateQuiz()" class="generate-button">Try Again</button>';
+                        console.error('Error:', error);
+                    });
+                }
+            </script>
         <?php endif; ?>
     </div>
 </body>
-</html>
-
-<?php $conn->close(); ?> 
+</html> 

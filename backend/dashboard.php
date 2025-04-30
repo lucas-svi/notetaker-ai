@@ -186,7 +186,7 @@ $other_notes_result = $stmt_other_notes->get_result();
                 <a href="index.php/user/leaderboard" style="text-decoration: none;">
                     <button type="button" style="background-color:rgb(7, 82, 54);">Leaderboard</button>
                 </a>
-                <a href="quiz_history.php" style="text-decoration: none;">
+                <a href="quiz_history_view.php" style="text-decoration: none;">
                     <button type="button" style="background-color: #66a3ff;">Quiz History</button>
                 </a>
                 <form action="logout.php" method="POST">
@@ -216,7 +216,7 @@ $other_notes_result = $stmt_other_notes->get_result();
                             </div>
                             <div class="note-actions">
                                 <a href="index.php/ai/reformat?note_id=<?= $row['id'] ?>" class="action-link">AI</a>
-                                <a href="quiz.php?note_id=<?php echo $row['id']; ?>" class="action-link">Quiz</a>
+                                <a href="quiz_view.php?note_id=<?php echo $row['id']; ?>" class="action-link">Quiz</a>
                                 <a href="note.php?edit=<?php echo $row['id']; ?>" class="action-link">Edit</a>
                                 <a href="note.php?delete=<?php echo $row['id']; ?>" class="action-link">Delete</a>
                             </div>
@@ -250,9 +250,9 @@ $other_notes_result = $stmt_other_notes->get_result();
     </div>
 </body>
 </html>
-
 <?php
 $stmt_user_notes->close();
 $stmt_other_notes->close();
 $conn->close();
 ?>
+
