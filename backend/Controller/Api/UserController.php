@@ -4,6 +4,24 @@ class UserController extends BaseController
     /** 
 * "/user/list" Endpoint - Get list of users 
 */
+    protected $userModel;
+
+    public function __construct() {
+        $this->userModel = new UserModel();
+    }
+
+    /**
+     * Show the leaderboard page.
+     */
+    public function leaderboardAction() {
+        // fetch top 20 (or pass a GET param for dynamic limits)
+        $limit = $_GET['limit'] ?? 20;
+        $leaderboard = $this->userModel->getLeaderboard((int)$limit);
+    
+        // make $leaderboard available to the view
+        include __DIR__ . '/../../leaderboard.php';
+    }
+
     public function listAction()
     {
         $strErrorDesc = '';
