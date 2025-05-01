@@ -1,57 +1,58 @@
 <?php
-// quiz_history.php
+// quiz_history_view.php - Uses REST API instead of direct database operations
 session_start();
 require 'authenticated.php';
-require 'db.php';
 
 $username = $_SESSION['username'];
+$api_base_url = "http://{$_SERVER['HTTP_HOST']}/notetaker-ai/backend/index.php";
 
-// Get user's quiz points
-$stmt = $conn->prepare("SELECT quiz_points FROM users WHERE username = ?");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$result = $stmt->get_result();
-$user_data = $result->fetch_assoc();
-$current_points = $user_data['quiz_points'];
-$stmt->close();
-
-// Create quiz_responses table if it doesn't exist
-$conn->query("CREATE TABLE IF NOT EXISTS quiz_responses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50),
-    note_id INT,
-    score INT,
-    total INT,
-    points_earned INT DEFAULT 0,
-    time_taken TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
-    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
-)");
-
-// Get quiz history
-$stmt = $conn->prepare("
-    SELECT qr.id, qr.note_id, qr.score, qr.total, qr.points_earned, qr.time_taken, 
-           SUBSTRING(n.note, 1, 100) AS note_preview
-    FROM quiz_responses qr
-    JOIN notes n ON qr.note_id = n.id
-    WHERE qr.username = ?
-    ORDER BY qr.time_taken DESC
-");
-$stmt->bind_param("s", $username);
-$stmt->execute();
-$history_result = $stmt->get_result();
-$stmt->close();
-
-// Calculate total points earned from quizzes
-$total_points_earned = 0;
-if ($history_result->num_rows > 0) {
-    $temp_result = $history_result;
-    while ($row = $temp_result->fetch_assoc()) {
-        $total_points_earned += $row['points_earned'];
+// Function to make API calls
+function callAPI($method, $endpoint, $data = false) {
+    global $api_base_url;
+    $url = $api_base_url . $endpoint;
+    
+    $curl = curl_init();
+    
+    switch ($method) {
+        case "GET":
+            if ($data) {
+                $url = sprintf("%s?%s", $url, http_build_query($data));
+            }
+            break;
+        case "POST":
+            curl_setopt($curl, CURLOPT_POST, 1);
+            if ($data) {
+                curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($data));
+            }
+            break;
+        default:
+            break;
     }
-    // Reset the result pointer
-    $history_result->data_seek(0);
+    
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+        'Content-Type: application/json'
+    ));
+    
+    $result = curl_exec($curl);
+    curl_close($curl);
+    
+    return json_decode($result, true);
 }
+
+// Get quiz history data from API
+$history_data = callAPI("GET", "/quiz/getHistory", ["username" => $username]);
+
+// Check if we have valid data
+$has_history = isset($history_data['success']) && $history_data['success'] && !empty($history_data['history']);
+
+// Extract data
+$current_points = isset($history_data['stats']['current_points']) ? $history_data['stats']['current_points'] : 0;
+$total_quizzes = isset($history_data['stats']['total_quizzes']) ? $history_data['stats']['total_quizzes'] : 0;
+$total_points_earned = isset($history_data['stats']['total_points_earned']) ? $history_data['stats']['total_points_earned'] : 0;
+$avg_percentage = isset($history_data['stats']['avg_percentage']) ? $history_data['stats']['avg_percentage'] : 0;
+$history_entries = $has_history ? $history_data['history'] : [];
 
 ?>
 
@@ -211,11 +212,11 @@ if ($history_result->num_rows > 0) {
             </div>
         </div>
         
-        <?php if ($history_result->num_rows > 0): ?>
+        <?php if ($has_history): ?>
             <div class="points-summary">
                 <div class="points-summary-item">
                     <div class="points-summary-label">Quizzes Taken</div>
-                    <div class="points-summary-value"><?php echo $history_result->num_rows; ?></div>
+                    <div class="points-summary-value"><?php echo $total_quizzes; ?></div>
                 </div>
                 <div class="points-summary-item">
                     <div class="points-summary-label">Total Points Earned</div>
@@ -223,16 +224,6 @@ if ($history_result->num_rows > 0) {
                 </div>
                 <div class="points-summary-item">
                     <div class="points-summary-label">Average Score</div>
-                    <?php
-                    $total_percentage = 0;
-                    $temp_result = $history_result;
-                    while ($row = $temp_result->fetch_assoc()) {
-                        $total_percentage += ($row['score'] / $row['total']) * 100;
-                    }
-                    $avg_percentage = $history_result->num_rows > 0 ? 
-                        round($total_percentage / $history_result->num_rows) : 0;
-                    $history_result->data_seek(0);
-                    ?>
                     <div class="points-summary-value"><?php echo $avg_percentage; ?>%</div>
                 </div>
             </div>
@@ -248,33 +239,22 @@ if ($history_result->num_rows > 0) {
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($row = $history_result->fetch_assoc()): 
-                        $percentage = ($row['score'] / $row['total']) * 100;
-                        $score_class = '';
-                        
-                        if ($percentage >= 80) {
-                            $score_class = 'high-score';
-                        } elseif ($percentage >= 60) {
-                            $score_class = 'medium-score';
-                        } else {
-                            $score_class = 'low-score';
-                        }
-                    ?>
+                    <?php foreach ($history_entries as $entry): ?>
                         <tr>
-                            <td><?php echo date('M j, Y, g:i a', strtotime($row['time_taken'])); ?></td>
-                            <td class="note-preview"><?php echo htmlspecialchars($row['note_preview']); ?>...</td>
-                            <td class="score-cell <?php echo $score_class; ?>">
-                                <?php echo $row['score']; ?>/<?php echo $row['total']; ?> 
-                                (<?php echo round($percentage); ?>%)
+                            <td><?php echo date('M j, Y, g:i a', strtotime($entry['date_taken'])); ?></td>
+                            <td class="note-preview"><?php echo htmlspecialchars($entry['note_preview']); ?>...</td>
+                            <td class="score-cell <?php echo $entry['score_class']; ?>">
+                                <?php echo $entry['score']; ?>/<?php echo $entry['total']; ?> 
+                                (<?php echo $entry['percentage']; ?>%)
                             </td>
                             <td class="points-cell">
-                                +<?php echo $row['points_earned']; ?>
+                                +<?php echo $entry['points_earned']; ?>
                             </td>
                             <td>
-                                <a href="quiz.php?note_id=<?php echo $row['note_id']; ?>" class="action-button">Take Again</a>
+                                <a href="quiz_view.php?note_id=<?php echo $entry['note_id']; ?>" class="action-button">Take Again</a>
                             </td>
                         </tr>
-                    <?php endwhile; ?>
+                    <?php endforeach; ?>
                 </tbody>
             </table>
         <?php else: ?>
@@ -286,6 +266,4 @@ if ($history_result->num_rows > 0) {
         <?php endif; ?>
     </div>
 </body>
-</html>
-
-<?php $conn->close(); ?> 
+</html> 
