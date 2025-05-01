@@ -24,6 +24,7 @@ $stmt_user_notes = $conn->prepare("
     SELECT id, note, username 
     FROM notes 
     WHERE username = ? 
+    ORDER BY id DESC
 ");
 $stmt_user_notes->bind_param("s", $username);
 $stmt_user_notes->execute();
@@ -33,7 +34,8 @@ $user_notes_result = $stmt_user_notes->get_result();
 $stmt_other_notes = $conn->prepare("
     SELECT id, note, username 
     FROM notes 
-    WHERE username != ? 
+    WHERE username != ?
+    ORDER BY id DESC
 ");
 $stmt_other_notes->bind_param("s", $username);
 $stmt_other_notes->execute();
