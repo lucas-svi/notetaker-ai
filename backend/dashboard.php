@@ -4,6 +4,19 @@ session_start();
 require 'authenticated.php';
 require 'db.php';
 
+
+require __DIR__ . '/vendor/autoload.php';
+
+use League\CommonMark\CommonMarkConverter;
+
+$mdConfig = [
+    'html_input'         => 'strip',
+    'allow_unsafe_links' => false,
+];
+
+$markdown = new CommonMarkConverter($mdConfig);
+
+
 $username = $_SESSION['username'];
 
 // Get user's notes
@@ -107,6 +120,11 @@ $other_notes_result = $stmt_other_notes->get_result();
             line-height: 1.6;
             text-align: left;
         }
+
+        .note-content h1, .note-content h2 { margin-top: 1.2em; }
+        .note-content pre { background:#f6f8fa; padding:12px; border-radius:4px; overflow:auto; }
+        .note-content code { background:#f0f0f0; padding:2px 4px; border-radius:3px; }
+        .note-content blockquote { border-left:4px solid #ccc; padding-left:12px; color:#555; }
         
         .note-actions {
             text-align: right;
@@ -211,9 +229,13 @@ $other_notes_result = $stmt_other_notes->get_result();
                 <ul class="notes-list">
                     <?php while($row = $user_notes_result->fetch_assoc()): ?>
                         <li class="note-item">
-                            <div class="note-content">
-                                <?php echo nl2br(htmlspecialchars($row['note'])); ?>
-                            </div>
+                        <div class="note-content">
+                            <?php
+                                $raw_note = $row['note'];
+                                $cleaned_note = str_replace(["\\r", "\\n"], ["\r", "\n"], $raw_note);
+                                echo $markdown->convert($cleaned_note);
+                            ?>
+                        </div>
                             <div class="note-actions">
                                 <a href="index.php/ai/reformat?note_id=<?= $row['id'] ?>" class="action-link">AI</a>
                                 <a href="quiz_view.php?note_id=<?php echo $row['id']; ?>" class="action-link">Quiz</a>
@@ -237,8 +259,12 @@ $other_notes_result = $stmt_other_notes->get_result();
                             <div class="note-author">
                                 <?php echo htmlspecialchars($row['username']); ?>
                             </div>
-                            <div class="note-content">
-                                <?php echo nl2br(htmlspecialchars($row['note'])); ?>
+                            <div class="note-content">  
+                                <?php
+                                    $raw_note = $row['note'];
+                                    $cleaned_note = str_replace(["\\r", "\\n"], ["\r", "\n"], $raw_note);
+                                    echo $markdown->convert($cleaned_note);
+                                ?>
                             </div>
                         </li>
                     <?php endwhile; ?>
