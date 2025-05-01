@@ -78,10 +78,12 @@ quiz_points INT DEFAULT 1000
 
 ```sql
 CREATE TABLE notes (
-id INT AUTO_INCREMENT PRIMARY KEY,
-username VARCHAR(50),
-note TEXT NOT NULL,
-FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    username     VARCHAR(50),
+    category_id  INT NULL,
+    note         TEXT NOT NULL,
+    FOREIGN KEY (username)    REFERENCES users(username)      ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES categories(id)       ON DELETE SET NULL
 );
 ```
 
@@ -115,11 +117,18 @@ CREATE TABLE quiz_responses (
      FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
 );
 ```
-
-## phpMyAdmin & Postman
-
+9. Create the category table
+```sql
+CREATE TABLE categories (
+    id        INT AUTO_INCREMENT PRIMARY KEY,
+    username  VARCHAR(50)  NOT NULL,
+    name      VARCHAR(100) NOT NULL,
+    UNIQUE KEY uniq_user_cat (username, name),
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+);
+```
 - Matthew's Picture
-<img width="1728" alt="image" src="https://github.com/user-attachments/assets/f9358840-ef2c-4578-aa66-7d4488409824" />
+<img width="1728" alt="image" src="https://github.com/user-attachments/assets/6cec6c1a-ba06-4899-869f-d3772106d905" />
 <img width="834" alt="image" src="https://github.com/user-attachments/assets/6f9a779d-91c1-4a4a-8054-834ef92e47bc" />
 <img width="849" alt="image" src="https://github.com/user-attachments/assets/36560a02-d902-43e1-bb53-a8baaec824c1" />
 
