@@ -15,7 +15,6 @@ class NoteModel extends Database
 
     public function createNote($username, $note)
     {
-        //Validate Input Parameters
         if (empty($username) || empty($note)) {
             throw new Exception("Invalid input provided for creating the note.");
         }
@@ -34,22 +33,19 @@ class NoteModel extends Database
             throw new Exception("An error occurred while creating the note. Please try again later.");
         }
 
-        mysqli_stmt_close($stmt); //Close the statement after execution
-        return true; // Indicate success
+        mysqli_stmt_close($stmt);
+        return true;
     }
 
 
     public function deleteNote($note_id)
     {
-        //Validate Input
         if (!is_int($note_id)) {
             throw new Exception("Invalid input provided for deleting the note.");
         }
 
-        // We makin sure $note_id is an integer
         $note_id = intval($note_id);
     
-        // Prepthe DELETE query
         $delete_query = "DELETE FROM notes WHERE id=?";
         $stmt = mysqli_prepare($this->connection, $delete_query);
     
@@ -57,12 +53,10 @@ class NoteModel extends Database
             throw new Exception("Failed to prepare statement: " . mysqli_error($this->connection));
         }
     
-        // Bind the parameter
         mysqli_stmt_bind_param($stmt, "i", $note_id);
     
-        // Execute the statement
         if (!mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt); //Lets make sure statement is closed
+            mysqli_stmt_close($stmt);
             throw new Exception("An error occurred while deleting the note. Please try again later.");
         }
         mysqli_stmt_close($stmt);
@@ -88,12 +82,12 @@ class NoteModel extends Database
         mysqli_stmt_bind_param($stmt, "sis", $note, $note_id, $username);
 
         if (!mysqli_stmt_execute($stmt)) {
-            mysqli_stmt_close($stmt); // Here we makes ure the statement is closed
+            mysqli_stmt_close($stmt);
             throw new Exception("An error occurred while updating the note. Please try again later.");
         }
 
-        mysqli_stmt_close($stmt); //Close the statement after execution
-        return true; // Indicate success
+        mysqli_stmt_close($stmt);
+        return true;
     }
 }
 ?>
