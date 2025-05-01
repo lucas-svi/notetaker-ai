@@ -13,7 +13,7 @@ if (isset($_GET['ai'])) {
     $sql = "UPDATE notes SET note=? WHERE id = ? AND username = ?";
     $stmt = mysqli_prepare($conn, $sql);
     $note_text = "AI generated note";
-    mysqli_stmt_bind_param($stmt, "sis", $note_text, $note_id, $username);
+    mysqli_stmt_bind_param($stmt, "sisi", $note_text, $note_id, $username);
     mysqli_stmt_execute($stmt);
     mysqli_stmt_close($stmt);
     header('Location: dashboard.php');
@@ -37,18 +37,20 @@ if (isset($_GET['delete'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  $cat_id = isset($_POST['category_id']) && $_POST['category_id'] !== ''
+  ? intval($_POST['category_id'])
+  : null;
     $note = mysqli_real_escape_string($conn, $_POST['note']);
 
-    // Check if it's an update or create operation
     if (isset($_POST['note_id']) && !empty($_POST['note_id'])) {
         $note_id = intval($_POST['note_id']);
-        $sql = "UPDATE notes SET note=? WHERE id=? AND username=?";
+        $sql = "UPDATE notes SET note=? WHERE id=? AND username=? AND category_id=?";
         $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "sis", $note, $note_id, $username);
+        mysqli_stmt_bind_param($stmt, "sisi", $note, $note_id, $username, $cat_id);
     } else {
-        $sql = "INSERT INTO notes (username, note) VALUES (?, ?)";
+        $sql = "INSERT INTO notes (username, note, category_id) VALUES (?, ?, ?)";
         $stmt = mysqli_prepare($conn, $sql);
-        mysqli_stmt_bind_param($stmt, "ss", $username, $note);
+        mysqli_stmt_bind_param($stmt, "ssi", $username, $note, $cat_id);
     }
 
     if (mysqli_stmt_execute($stmt)) {
@@ -65,43 +67,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title><?php echo isset($_GET['edit']) ? 'Edit Note' : 'Create Note'; ?></title>
-  <link rel="stylesheet" href="../styles.css" />
+    <meta charset="UTF-8" />
+    <title><?= isset($_GET['edit']) ? 'Edit Note' : 'Create Note'; ?></title>
+    <link rel="stylesheet" href="../styles.css" />
 </head>
 <body>
-  <div class="auth-container">
-    <h2><?php
-        $note = '';
-        if (isset($_GET['edit'])) {
-            $note_id = intval($_GET['edit']);
-            $sql = "SELECT note FROM notes WHERE id=? AND username=?";
-            $stmt = mysqli_prepare($conn, $sql);
-            mysqli_stmt_bind_param($stmt, "is", $note_id, $username);
-            mysqli_stmt_execute($stmt);
-            $result = mysqli_stmt_get_result($stmt);
-            if ($result && mysqli_num_rows($result) === 1) {
-                $note_data = mysqli_fetch_assoc($result);
-                $note = $note_data['note'];
-            }
-            mysqli_stmt_close($stmt);
-        }
-?></h2>
+<div class="auth-container">
 
-    <form class="auth-form" action="note.php" method="POST">
-    <textarea name="note" required rows="5" cols="100" placeholder="Write note here..."><?php echo htmlspecialchars($note); ?></textarea>
+<h2><?= isset($_GET['edit']) ? 'Edit Note' : 'Create Note'; ?></h2>
 
-      <?php if (isset($_GET['edit'])): ?>
-        <input type="hidden" name="note_id" value="<?php echo htmlspecialchars($note_id); ?>">
-      <?php endif; ?>
+<form class="auth-form" action="note.php" method="POST">
 
-    <input type="submit" class="submit-btn" value="<?php echo isset($_GET['edit']) ? 'Update' : 'Create'; ?> Note">
-  </form>
+    <!-- note body -->
+    <textarea name="note" required rows="5" cols="100"
+              placeholder="Write note here..."><?= htmlspecialchars($note_text); ?></textarea>
 
-  <?php if ($message): ?>
-    <p><?php echo $message; ?></p>
-  <?php endif; ?>
+    <!-- category dropdown -->
+    <select name="category_id" style="margin:15px 0;width:100%;padding:10px;">
+        <option value="">— None —</option>
+        <?php foreach ($categories as $cat): ?>
+            <option value="<?= $cat['id'] ?>"
+                    <?= $cat['id'] == $currentCat ? 'selected' : '' ?>>
+                <?= htmlspecialchars($cat['name']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+
+    <!-- hidden id if editing -->
+    <?php if (isset($_GET['edit'])): ?>
+        <input type="hidden" name="note_id" value="<?= htmlspecialchars($note_id); ?>">
+    <?php endif; ?>
+
+    <!-- submit -->
+    <input type="submit" class="submit-btn"
+           value="<?= isset($_GET['edit']) ? 'Update' : 'Create'; ?> Note">
+</form>
+
+<?= $message ?>
+
+</div>
 </body>
 </html>
-
-<?php mysqli_close($conn); // Close the database connection ?>
+<?php mysqli_close($conn); ?>
