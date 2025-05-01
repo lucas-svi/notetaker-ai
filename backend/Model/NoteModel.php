@@ -4,7 +4,7 @@ class NoteModel extends Database
 {
     public function getNotes($limit)
     {
-        return $this->select("SELECT * FROM notes ORDER BY id ASC LIMIT ?", ["i", $limit]);
+        return $this->select("SELECT * FROM notes ORDER BY id DESC LIMIT ?", ["i", $limit]);
     }
 
     public function getOneNote($note_id)
