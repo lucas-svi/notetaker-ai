@@ -1,119 +1,162 @@
 <?php
-include_once __DIR__ . '/../api_key.php'; // Now loads from "/notetaker-ai/backend/api_key.php"
-
+/**
+ * AIModel
+ *  - wraps all Gemini interactions
+ *  - provides high-level helpers: reformatNote(), rewriteNote()
+ */
+include_once __DIR__ . '/../api_key.php';     // loads $geminiApiKey
 class AIModel extends Database
 {
+    /** @var string */
     private $apiKey;
 
-    public function __construct(string $apiKey = null)
+    public function __construct(?string $apiKey = null)
     {
         parent::__construct();
-        // Use the provided apiKey or fall back to $geminiApiKey loaded from api_key.php
-        if ($apiKey !== null) {
+        if ($apiKey) {
             $this->apiKey = $apiKey;
         } else {
-            // pull in the global defined in api_key.php
             global $geminiApiKey;
-            if (empty($geminiApiKey) || !is_string($geminiApiKey)) {
+            if (empty($geminiApiKey)) {
                 throw new \Exception("Gemini API key not configured");
             }
             $this->apiKey = $geminiApiKey;
         }
     }
 
-    /**
-     * Reformat a note by retrieving its contents, sending it to the Gemini API,
-     * and updating the note in the database with the AI-generated summary.
-     *
-     * @param string $username The username of the note owner.
-     * @param int $note_id The ID of the note to reformat.
-     * @return bool Returns true on success.
-     * @throws Exception if any database or API error occurs.
-     */
+    /* ------------------------------------------------------------------ */
+    /*  public high-level methods                                         */
+    /* ------------------------------------------------------------------ */
+
+    /** Summarise a note in one paragraph */
     public function reformatNote(string $username, int $note_id): bool
     {
-        // 1) Retrieve the note content using a prepared statement.
-        $sql = "SELECT note FROM notes WHERE id=? AND username=?";
-        $stmt = mysqli_prepare($this->connection, $sql);
-        if (!$stmt) {
-            throw new Exception("Failed to prepare retrieval statement: " . mysqli_error($this->connection));
-        }
-        mysqli_stmt_bind_param($stmt, "is", $note_id, $username);
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        if (!$result || mysqli_num_rows($result) === 0) {
-            mysqli_stmt_close($stmt);
-            throw new Exception("Note not found.");
-        }
-        $row = mysqli_fetch_assoc($result);
-        mysqli_stmt_close($stmt);
-        $note_content = $row['note'];
+        $note = $this->getNoteText($username, $note_id);
 
-        // 2) Prepare the API request payload as in ai.php.
-        $endpoint = 'https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent';
-        $url = $endpoint . '?key=' . $this->apiKey;
-        $headers = ['Content-Type: application/json'];
-        $body = json_encode([
-            'contents' => [
-                [
-                    'parts' => [
-                        [
-                            'text' => "You are a study assistant that creates detailed, structured summaries for notes. Here are the notes to summarize:\n\n{$note_content}"
-                        ]
-                    ]
-                ]
-            ],
+        $prompt = "You are a study assistant that produces concise, well-"
+                . "structured summaries. Summarise the following note:\n\n"
+                . $note;
+
+        $summary = $this->callGemini($prompt, 0.4, 800);
+
+        return $this->updateNote($username, $note_id, $summary);
+    }
+
+    /**
+     * Rewrite a note in a chosen style: bullet | simplify | expand
+     */
+    public function rewriteNote(
+        string $username,
+        int    $note_id,
+        string $style = 'bullet'
+    ): bool {
+
+        $note = $this->getNoteText($username, $note_id);
+
+        switch ($style) {
+            case 'simplify':
+                $prompt = "Rewrite the following note in plain language "
+                        . "so a 12-year-old can understand:\n\n" . $note;
+                break;
+            case 'expand':
+                $prompt = "Expand the following note with extra detail and "
+                        . "examples, keeping an academic tone:\n\n" . $note;
+                break;
+            case 'bullet':
+            default:
+                $prompt = "Rewrite the following note as concise bullet points:"
+                        . "\n\n" . $note;
+        }
+
+        $rewritten = $this->callGemini($prompt, 0.4, 1000);
+
+        return $this->updateNote($username, $note_id, $rewritten);
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  PRIVATE HELPERS                                                   */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Centralised Gemini call
+     *
+     * @throws \Exception on HTTP or JSON error
+     */
+    private function callGemini(
+        string  $prompt,
+        float   $temperature = 0.4,
+        int     $maxTokens   = 1000
+    ): string {
+
+        $endpoint = 'https://generativelanguage.googleapis.com/v1/'
+                  . 'models/gemini-1.5-flash:generateContent';
+        $url      = $endpoint . '?key=' . $this->apiKey;
+
+        $payload = [
+            'contents' => [[ 'parts' => [[ 'text' => $prompt ]] ]],
             'generationConfig' => [
-                'temperature' => 0.4,
-                'maxOutputTokens' => 1000
+                'temperature'     => $temperature,
+                'maxOutputTokens' => $maxTokens
             ],
-            'safetySettings' => [
-                [
-                    'category' => 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                    'threshold' => 'BLOCK_ONLY_HIGH'
-                ]
-            ]
+            'safetySettings' => [[
+                'category'  => 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                'threshold' => 'BLOCK_ONLY_HIGH'
+            ]]
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 15
         ]);
 
-        // 3) Call the Gemini API via cURL.
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        $response = curl_exec($ch);
+        $raw = curl_exec($ch);
         if (curl_errno($ch)) {
-            error_log('Gemini cURL error: ' . curl_error($ch));
-            curl_close($ch);
-            $summary = 'AI summary UNAVAILABLE at the moment.';
-        } else {
-            curl_close($ch);
-            $data = json_decode($response, true);
-            
-            if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                $summary = trim($data['candidates'][0]['content']['parts'][0]['text']);
-            } elseif (isset($data['candidates'][0]['output'])) {
-                $summary = trim($data['candidates'][0]['output']);
-            } else {
-                error_log('Gemini response error: ' . $response);
-                $summary = 'AI sum unavailable at the moment.';
-            }
+            throw new \Exception("Gemini cURL error: " . curl_error($ch));
+        }
+        curl_close($ch);
+
+        $json = json_decode($raw, true);
+        if (!isset($json['candidates'][0]['content']['parts'][0]['text'])) {
+            throw new \Exception("Gemini response malformed: " . $raw);
         }
 
-        // 4) Update the note with the AI-generated summary using a prepared UPDATE statement.
-        $update_sql = "UPDATE notes SET note=? WHERE id=? AND username=?";
-        $update_stmt = mysqli_prepare($this->connection, $update_sql);
-        if (!$update_stmt) {
-            throw new Exception("Failed to prepare update statement: " . mysqli_error($this->connection));
-        }
-        mysqli_stmt_bind_param($update_stmt, "sis", $summary, $note_id, $username);
-        if (!mysqli_stmt_execute($update_stmt)) {
-            mysqli_stmt_close($update_stmt);
-            throw new Exception("Failed to update note: " . mysqli_stmt_error($update_stmt));
-        }
-        mysqli_stmt_close($update_stmt);
+        return trim($json['candidates'][0]['content']['parts'][0]['text']);
+    }
 
+    /** fetch note text or throw */
+    private function getNoteText(string $user, int $id): string
+    {
+        $stmt = $this->connection->prepare(
+            "SELECT note FROM notes WHERE id=? AND username=?"
+        );
+        $stmt->bind_param("is", $id, $user);
+        $stmt->execute();
+        $stmt->bind_result($note);
+        if (!$stmt->fetch()) {
+            $stmt->close();
+            throw new \Exception("Note not found or permission denied.");
+        }
+        $stmt->close();
+        return $note;
+    }
+
+    /** update note text */
+    private function updateNote(string $user, int $id, string $newText): bool
+    {
+        $stmt = $this->connection->prepare(
+            "UPDATE notes SET note=? WHERE id=? AND username=?"
+        );
+        $stmt->bind_param("sis", $newText, $id, $user);
+        if (!$stmt->execute()) {
+            $err = $stmt->error;
+            $stmt->close();
+            throw new \Exception("Failed to update note: $err");
+        }
+        $stmt->close();
         return true;
     }
 }
-?>
