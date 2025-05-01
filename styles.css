@@ -3,7 +3,11 @@
   color: rgb(13, 13, 41);
 }
 
-/* Styles via id selectors */
+.note-content,
+.note-content * {      /* make sure nested tags inherit it too */
+    text-align: left !important;
+}
+
 #about {
   background-color: rgba(38, 119, 15, 0.349);
   padding: 10px;
@@ -43,9 +47,6 @@ body {
   align-items: center;
 }
 
-/* For Feature Cards */
-
-/* flex display for responsive design */
 #features {
   display: flex;
   flex-wrap: wrap;
@@ -94,7 +95,6 @@ body {
   line-height: 1.5;
 }
 
-/* Navigation bar */
 nav {
   background-color: #333;
   padding: 10px 0;
@@ -128,7 +128,6 @@ nav ul li strong {
   font-size: 20px;
 }
 
-/* For iframe */
 iframe {
   width: 100%;
   height: 800px;
@@ -136,7 +135,6 @@ iframe {
   max-height: 540px;
 }
 
-/* Styles for signup and signin forms */
 .auth-container {
   background: rgba(255, 255, 255, 0.9);
   padding: 40px;
@@ -171,16 +169,22 @@ iframe {
   border-color: #5cb85c;
 }
 
-.submit-btn {
-  padding: 12px;
-  margin-top: 10px;
-  font-size: 1em;
-  color: #fff;
-  background-color: #5cb85c;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.submit-btn{
+  padding:12px 32px;
+  font-size:1em;
+  color:#fff;
+  background:#5cb85c;
+  border:0;
+  border-radius:4px;
+  cursor:pointer;
+
+  display:block;  
+  width:auto;            
+  margin:20px auto 0;
+  display:block;
+  margin:20px auto 0;  
 }
+
 
 .submit-btn:hover {
   background-color: #4cae4c;

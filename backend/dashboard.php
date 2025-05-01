@@ -3,6 +3,17 @@ session_start();
 require 'authenticated.php';
 require 'db.php';
 
+require __DIR__ . '/vendor/autoload.php';
+
+use League\CommonMark\CommonMarkConverter;
+
+$mdConfig = [
+    'html_input'         => 'strip',
+    'allow_unsafe_links' => false,
+];
+
+$markdown = new CommonMarkConverter($mdConfig);
+
 $username = $_SESSION['username'];
 
 $stmt_cats = $conn->prepare("
@@ -34,7 +45,8 @@ if ($selectedCatId) {
         SELECT id, note, username, category_id
         FROM notes
         WHERE username = ?
-          AND category_id = ?
+        AND category_id = ?
+        ORDER BY id DESC
     ");
     $stmt_user_notes->bind_param("si", $username, $selectedCatId);
 } else {
@@ -42,6 +54,7 @@ if ($selectedCatId) {
         SELECT id, note, username, category_id
         FROM notes
         WHERE username = ?
+        ORDER BY id DESC
     ");
     $stmt_user_notes->bind_param("s", $username);
 }
@@ -52,6 +65,7 @@ $stmt_other_notes = $conn->prepare("
     SELECT id, note, username, category_id
     FROM notes 
     WHERE username != ? 
+    ORDER BY id DESC
 ");
 $stmt_other_notes->bind_param("s", $username);
 $stmt_other_notes->execute();
@@ -269,9 +283,45 @@ $other_notes_result = $stmt_other_notes->get_result();
         z-index: 1;
         transform: translateZ(14px);
       }
+
+      .note-content h1,
+      .note-content h2 {
+        margin-top: 1.2em;
+      }
+
+      .note-content pre {
+        background: #f6f8fa;
+        padding: 12px;
+        border-radius: 4px;
+        overflow: auto;
+      }
+
+      .note-content code {
+        background: #f0f0f0;
+        padding: 2px 4px;
+        border-radius: 3px;
+      }
+
+      .note-content blockquote {
+        border-left: 4px solid #ccc;
+        padding-left: 12px;
+        color: #555;
+      }
+
+      .cat-pill{
+        display:inline-block;
+        padding:2px 8px;
+        border-radius:12px;
+        font-size:12px;
+        text-decoration:none;
+        margin-right:6px;
+    }
+        .cat-pill:hover{
+            filter:brightness(0.9);
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="dashboard-container">
       <div class="welcome-header">
         <h1>Welcome, <?php echo htmlspecialchars($username); ?> </h1>
@@ -298,6 +348,8 @@ $other_notes_result = $stmt_other_notes->get_result();
           <div style="margin-top: 20px; text-align: center;">
             <select name="category_id" style="margin-top:15px;width:100%;padding:10px;">
               <option value="">— None —</option> <?php foreach ($categories as $cat): ?> <option value="
+											
+											
 											<?= $cat['id'] ?>"> <?= htmlspecialchars($cat['name']) ?> </option> <?php endforeach; ?>
             </select>
             <button type="submit">Create Note</button>
@@ -313,8 +365,12 @@ $other_notes_result = $stmt_other_notes->get_result();
           </a> <?php foreach ($categories as $cat): ?> <?php
         $hue = crc32($cat['id']) % 360
     ?> <a href="dashboard.php?cat_id=
+									
+									
 									<?= $cat['id']; ?>" class="textbook-link">
             <div class="textbook" style="--hue:
+										
+										
 										<?= $hue; ?>;">
               <span class="textbook-title"> <?= htmlspecialchars($cat['name']) ?> </span>
             </div>
@@ -323,15 +379,21 @@ $other_notes_result = $stmt_other_notes->get_result();
       </div> <?php endif; ?> <div class="notes-section">
         <h2 class="section-header"> <?= $selectedCatName ? "Notes in " . htmlspecialchars($selectedCatName)
                          : "Your Notes"; ?> </h2> <?php if ($user_notes_result->num_rows > 0): ?> <ul class="notes-list"> <?php while($row = $user_notes_result->fetch_assoc()): ?> <li class="note-item">
-            <div class="note-content"> <?php if ($row['category_id']): 
+            <div class="note-content"> <?php if (
+                    $row['category_id']): 
                                 $hash = crc32($row['category_id']);
                                 $hue  = $hash % 360;
                                 $bg   = "hsl($hue, 70%, 85%)";
                                 $fg   = "hsl($hue, 70%, 25%)";
-                                ?> <span style="background:
-											<?= $bg; ?>;color:
-											<?= $fg; ?>;padding:2px 8px;
-                 border-radius:12px;font-size:12px;margin-right:6px;"> <?= htmlspecialchars($catMap[$row['category_id']] ?? '?') ?> </span> <?php endif; ?> <?php echo nl2br(htmlspecialchars($row['note'])); ?> </div>
+                                ?> <a href="dashboard.php?cat_id=<?= $row['category_id']; ?>"
+                                class="cat-pill"
+                                style="background:<?= $bg ?>;color:<?= $fg ?>;">
+                               <?= htmlspecialchars($catMap[$row['category_id']] ?? '?') ?>
+                             </a> <?php endif; ?> <?php
+                                $raw_note = $row['note'];
+                                $cleaned_note = str_replace(["\\r", "\\n"], ["\r", "\n"], $raw_note);
+                                echo $markdown->convert($cleaned_note);
+                            ?> </div>
             <div class="note-actions">
               <a href="index.php/ai/reformat?note_id=
 											<?= $row['id'] ?>" class="action-link">AI </a>
@@ -347,7 +409,11 @@ $other_notes_result = $stmt_other_notes->get_result();
       <div class="notes-section">
         <h2 class="section-header">Community Notes</h2> <?php if ($other_notes_result->num_rows > 0): ?> <ul class="notes-list"> <?php while($row = $other_notes_result->fetch_assoc()): ?> <li class="other-note-item">
             <div class="note-author"> <?php echo htmlspecialchars($row['username']); ?> </div>
-            <div class="note-content"> <?php echo nl2br(htmlspecialchars($row['note'])); ?> </div>
+            <div class="note-content"> <?php
+                                    $raw_note = $row['note'];
+                                    $cleaned_note = str_replace(["\\r", "\\n"], ["\r", "\n"], $raw_note);
+                                    echo $markdown->convert($cleaned_note);
+                                ?> </div>
           </li> <?php endwhile; ?> <?php else: ?> <p>No community notes found.</p> <?php endif; ?>
       </div>
     </div>
