@@ -58,6 +58,14 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
    ```
    while android studio is open
 
+## Composer Setup
+1. Run `brew install` if you do not have composer already installed.
+2. Run from backend folder `composer install` to install the dependencies.
+
+## Running unit tests
+1. Make sure you're in the backend folder.
+2. Run `php vendor/bin/phpunit` to run the tests.
+
 ## Database Setup
 1. Make sure you have XAMPP downloaded.
 2. Run Apache and MySQL through XAMPP.
@@ -146,6 +154,9 @@ CREATE TABLE categories (
 <img width="1440" alt="image" src="https://github.com/user-attachments/assets/e1326179-971d-42a8-b649-677bab8cbd42" />
 
 
+## Live Website
+
+https://svirsky.dev/apps/notetaker-ai
 
 ## 📜 License
 
