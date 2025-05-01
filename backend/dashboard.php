@@ -308,18 +308,27 @@ $other_notes_result = $stmt_other_notes->get_result();
         color: #555;
       }
 
-      .cat-pill{
-        display:inline-block;
-        padding:2px 8px;
-        border-radius:12px;
-        font-size:12px;
-        text-decoration:none;
-        margin-right:6px;
-    }
+      .cat-pill {
+            display:inline-block;
+            padding:2px 8px;
+            border-radius:12px;
+            font-size:12px;
+            text-decoration:none;
+            margin-right:6px;
+      }
         .cat-pill:hover{
             filter:brightness(0.9);
         }
+
+        .drop-menu a:hover{background:#f5f5f5}
+.show{display:block!important}
     </style>
+    <script>
+window.addEventListener('click',e=>{
+  if(!e.target.matches('.action-link')) document
+      .querySelectorAll('.drop-menu').forEach(m=>m.classList.remove('show'));
+});
+</script>
 </head>
 <body>
     <div class="dashboard-container">
@@ -348,8 +357,6 @@ $other_notes_result = $stmt_other_notes->get_result();
           <div style="margin-top: 20px; text-align: center;">
             <select name="category_id" style="margin-top:15px;width:100%;padding:10px;">
               <option value="">— None —</option> <?php foreach ($categories as $cat): ?> <option value="
-											
-											
 											<?= $cat['id'] ?>"> <?= htmlspecialchars($cat['name']) ?> </option> <?php endforeach; ?>
             </select>
             <button type="submit">Create Note</button>
@@ -396,13 +403,29 @@ $other_notes_result = $stmt_other_notes->get_result();
                             ?> </div>
             <div class="note-actions">
               <a href="index.php/ai/reformat?note_id=
-											<?= $row['id'] ?>" class="action-link">AI </a>
+											<?= $row['id'] ?>" class="action-link">AI Summarize</a>
+                                            <div class="dropdown" style="display:inline-block;position:relative;">
+    <a class="action-link" onclick="this.nextElementSibling.classList.toggle('show')">
+        Transform ▾
+    </a>
+    <div class="drop-menu" style="display:none;position:absolute;
+         background:#fff;border:1px solid #ccc;border-radius:4px;
+         box-shadow:0 2px 6px rgba(0,0,0,.12);z-index:5;">
+        <a class="action-link" style="display:block;padding:6px 12px;"
+           href="index.php/ai/rewrite?note_id=<?= $row['id'] ?>&style=bullet">• Bullet points</a>
+        <a class="action-link" style="display:block;padding:6px 12px;"
+           href="index.php/ai/rewrite?note_id=<?= $row['id'] ?>&style=simplify">🪄 Simplify</a>
+        <a class="action-link" style="display:block;padding:6px 12px;"
+           href="index.php/ai/rewrite?note_id=<?= $row['id'] ?>&style=expand">➕ Expand</a>
+    </div>
+</div>
               <a href="quiz_view.php?note_id=
 											<?php echo $row['id']; ?>" class="action-link">Quiz </a>
               <a href="note.php?edit=
 											<?php echo $row['id']; ?>" class="action-link">Edit </a>
               <a href="note.php?delete=
 											<?php echo $row['id']; ?>" class="action-link">Delete </a>
+            
             </div>
           </li> <?php endwhile; ?> </ul> <?php else: ?> <p>You haven't created any notes yet.</p> <?php endif; ?>
       </div>
