@@ -59,12 +59,23 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
    while android studio is open
 
 ## Composer Setup
-1. Run `brew install` if you do not have composer already installed.
+1. Run `brew install composer` if you do not have composer already installed.
 2. Run from backend folder `composer install` to install the dependencies.
 
 ## Running unit tests
 1. Make sure you're in the backend folder.
 2. Run `php vendor/bin/phpunit` to run the tests.
+
+## How we used AI for Testing - Problem 2
+
+We used AI in a couple of ways to help us in our testing.
+
+1. Test Ideation
+We asked Cursor, an AI powered code editor, to look at our UserModel and UserController, and let us know what kinds of unit tests would be effective for our model. It came up with tests similar to those required by the homework assignment. Cursor was also helpful in guiding us through how to set up and install PHPUnit Tests.
+2. Test Writing
+We used ChatGPT to help design a unit test for us. As none of us have used PHPUnit before, AI was a way to create code for tests quickly and learn the proper structure, which we then carried over to the future tests. ChatGPT also then asked us if we needed help running these tests, outside of just coding them, which helped get our testing process underway.
+
+Overall, AI saved us from having to read a lot of documentation and greatly sped up our project's testing.
 
 ## Database Setup
 1. Make sure you have XAMPP downloaded.
@@ -135,6 +146,19 @@ CREATE TABLE categories (
     FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );
 ```
+
+## AI Setup
+In backend folder, create a file called 'api_key.php', with the following structure:
+
+```php
+<?php
+$geminiApiKey = "API_KEY_HERE";
+?>
+```
+
+We can email you our API key for testing purposes if you do not have one!
+
+
 - Matthew's Picture
 <img width="1728" alt="image" src="https://github.com/user-attachments/assets/f9358840-ef2c-4578-aa66-7d4488409824" />
 <img width="834" alt="image" src="https://github.com/user-attachments/assets/6f9a779d-91c1-4a4a-8054-834ef92e47bc" />
