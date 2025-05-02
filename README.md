@@ -84,6 +84,7 @@ Overall, AI saved us from having to read a lot of documentation and greatly sped
 4. Create the database called 'app_db'.
 5. Create the users table.
 
+4. Create the users table.
 ```sql
 CREATE TABLE users (
 username VARCHAR(50) PRIMARY KEY,
@@ -93,8 +94,18 @@ quiz_points INT DEFAULT 1000
 );
 ```
 
-6. Create the notes table
+5. Create the category table
+```sql
+CREATE TABLE categories (
+    id        INT AUTO_INCREMENT PRIMARY KEY,
+    username  VARCHAR(50)  NOT NULL,
+    name      VARCHAR(100) NOT NULL,
+    UNIQUE KEY uniq_user_cat (username, name),
+    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+);
+```
 
+6. Create the notes table
 ```sql
 CREATE TABLE notes (
     id           INT AUTO_INCREMENT PRIMARY KEY,
@@ -134,16 +145,6 @@ CREATE TABLE quiz_responses (
      time_taken TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE,
      FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
-);
-```
-9. Create the category table
-```sql
-CREATE TABLE categories (
-    id        INT AUTO_INCREMENT PRIMARY KEY,
-    username  VARCHAR(50)  NOT NULL,
-    name      VARCHAR(100) NOT NULL,
-    UNIQUE KEY uniq_user_cat (username, name),
-    FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
 );
 ```
 
