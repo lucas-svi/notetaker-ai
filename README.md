@@ -31,7 +31,10 @@ Notetaker AI is a web app that helps users take notes using AI. It transcribes l
 2. **Open `index.html` in your browser**
    - Double-click the file to open it.
    - Or, copy the full file path and paste it into your browser’s address bar.
-  
+3. **Email fzamore@wesleyan.edu for the gemini API key**
+   - Create a new file named api_key and place it in the backend directory i.e. /notetake-ai/backend/api_key.php
+   - Declare $api_key = "The gemini api key here"
+   - That's it!
 ## For Mobile
 
 1. **Make Necessary Adjustments**
@@ -76,6 +79,15 @@ We asked Cursor, an AI powered code editor, to look at our UserModel and UserCon
 We used ChatGPT to help design a unit test for us. As none of us have used PHPUnit before, AI was a way to create code for tests quickly and learn the proper structure, which we then carried over to the future tests. ChatGPT also then asked us if we needed help running these tests, outside of just coding them, which helped get our testing process underway.
 
 Overall, AI saved us from having to read a lot of documentation and greatly sped up our project's testing.
+
+## New Features/Enhancments
+
+We introduced an ELO-based quiz ranking system that allows users to generate quizzes directly from their notes. To showcase knowledge and engagement, we added a public leaderboard where users are ranked by their quiz performance—those with more correct answers climb higher on the board.
+
+We also extended the DVC model to power an AI-driven note enhancement feature. This lets users customize their notes' structure, offering options for bullet points, summaries, expanded details, or a general reformat for better organization.
+
+Finally, we launched a textbook feature that enables users to categorize their notes by class. A bubble icon for each textbook allows quick filtering, making it easy to access class-specific notes.
+
 
 ## Database Setup
 1. Make sure you have XAMPP downloaded.
