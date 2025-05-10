@@ -77,8 +77,35 @@ We used AI in a couple of ways to help us in our testing.
 We asked Cursor, an AI powered code editor, to look at our UserModel and UserController, and let us know what kinds of unit tests would be effective for our model. It came up with tests similar to those required by the homework assignment. Cursor was also helpful in guiding us through how to set up and install PHPUnit Tests.
 2. Test Writing
 We used ChatGPT to help design a unit test for us. As none of us have used PHPUnit before, AI was a way to create code for tests quickly and learn the proper structure, which we then carried over to the future tests. ChatGPT also then asked us if we needed help running these tests, outside of just coding them, which helped get our testing process underway.
+3. More specifically, we used generative AI to extend our existing UserApiTest.php by adding a missing DELETE endpoint test case. Using an AI tool, we prompted it to generate a PHPUnit test for user deletion. This allowed us to cover CRUD operations more comprehensively.
 
-Overall, AI saved us from having to read a lot of documentation and greatly sped up our project's testing.
+**AI-Generated Test Case:**
+/* -----------------------------------------------------------------------
+ *  DELETE /user/delete
+ * --------------------------------------------------------------------- */
+/**
+ * @depends testPost_CreateUser
+ */
+public function testDelete_User(array $creds): void
+{
+    $r = $this->http->post('user/delete', [
+        'form_params' => [
+            'username' => $creds['username'],
+        ],
+    ]);
+
+    $this->assertSame(
+        200,
+        $r->getStatusCode(),
+        'Expected 200 OK from /user/delete'
+    );
+}
+
+**How to Reproduce**
+1)Open a generative AI tool (e.g., ChatGPT).
+2)Use the prompt: "Extend this PHPUnit test suite to include DELETE user functionality."
+3)Integrate the AI-generated test case into UserApiTest.php.
+4)Run the test suite: phpunit UserApiTest.php
 
 ## New Features/Enhancments
 
